@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Test from "./assets/test.jpg";
 // import "./App.css";
-import { Layer, Stage, Image, Line, Circle } from "react-konva";
+import { Layer, Stage, Image, Line, Circle, Text, Rect } from "react-konva";
 import useImage from "use-image";
 import styles from "./Test.module.scss";
 import {
@@ -12,6 +12,7 @@ import {
 import { Point, Scale } from "./models/models";
 import { Dialog } from "./components/Dialog";
 import { ScalePicker } from "./components/ScalePicker/ScalePicker";
+import { KonvaScale } from "./components/KonvaScale";
 
 type Mode = "setscale";
 
@@ -20,7 +21,9 @@ function App() {
   const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([]);
   const [stuff] = useImage(Test);
   const [displayScale, setDisplayScale] = useState(0.5);
-  const [scale, setScale] = useState<Scale>(Scale.Default());
+  const [scale, setScale] = useState<Scale>(
+    new Scale(new Point(200, 200), new Point(500, 500), 12.921, "Meters")
+  );
   const [clicked, setClicked] = useState<Point[]>([]);
   const [showScaleDialog, setShowScaleDialog] = useState(false);
 
@@ -37,14 +40,14 @@ function App() {
   };
 
   const measurements: Measurement[] = [
-    new LineMeasurement(new Point(200, 200), new Point(350, 500)),
-    new PolygonalMeasurement([
-      new Point(50, 50),
-      new Point(160, 160),
-      new Point(50, 200),
-      new Point(0, 200),
-      // new Point(600, 500),
-    ]),
+    // new LineMeasurement(new Point(200, 200), new Point(350, 500)),
+    // new PolygonalMeasurement([
+    //   new Point(50, 50),
+    //   new Point(160, 160),
+    //   new Point(50, 200),
+    //   new Point(0, 200),
+    //   // new Point(600, 500),
+    // ]),
   ];
 
   const handleClicked = (point: Point) => {
@@ -94,16 +97,9 @@ function App() {
           </Layer>
           <Layer>
             {!scale.isDefault && (
-              <Line
-                scale={drawScale}
-                x={0}
-                y={0}
-                points={scale.points}
-                tension={0}
-                stroke="orange"
-                strokeWidth={10}
-              />
+              <KonvaScale displayScale={displayScale} scale={scale} />
             )}
+
             {measurements.map((mst, idx) => {
               return (
                 <Line
@@ -128,19 +124,6 @@ function App() {
               stroke="magenta"
               strokeWidth={10}
               dash={[24, 12]}
-            />
-
-            <Line
-              scale={drawScale}
-              x={0}
-              y={0}
-              points={[400, 400, 600, 600, 400, 600]}
-              tension={0}
-              closed
-              stroke="red"
-              fill="rgba(200, 200, 200, 0.5)"
-              strokeWidth={5}
-              onClick={() => alert("you clicked me")}
             />
 
             {/* SCALE */}

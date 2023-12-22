@@ -15,6 +15,10 @@ export class Point {
     return this.x === 0 && this.y === 0;
   }
 
+  public asString() {
+    return `[${this.x.toFixed(0)}, ${this.y.toFixed(0)}]`;
+  }
+
   public static toArray(points: Point[]): number[] {
     return points.reduce((acc, val) => {
       return acc.concat([val.x, val.y]);
@@ -49,6 +53,26 @@ export class Scale {
 
   public get points() {
     return Point.toArray([this.first, this.second]);
+  }
+
+  public get center(): Point {
+    return new Point(
+      Math.abs(this.second.x + this.first.x) / 2,
+      Math.abs(this.second.y + this.first.y) / 2
+    );
+  }
+
+  public get description(): string {
+    const unitMap: Record<ScaleUnit, string> = {
+      None: "",
+      Meters: "m",
+      Centimeters: "cm",
+    };
+    if (this.unit === "None") {
+      return this.enteredDistance.toString();
+    }
+
+    return `${this.enteredDistance} ${unitMap[this.unit]}`;
   }
 
   constructor(first: Point, second: Point, distance: number, unit: ScaleUnit) {
