@@ -1,0 +1,54 @@
+export class Point {
+  public x: number;
+  public y: number;
+
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+
+  static get Empty(): Point {
+    return new Point(0, 0);
+  }
+
+  public get isEmpty() {
+    return this.x === 0 && this.y === 0;
+  }
+}
+
+const ScaleUnits = ["None", "Centimeters", "Meters"] as const;
+type ScaleUnit = (typeof ScaleUnits)[number];
+
+export class Scale {
+  public first: Point;
+  public second: Point;
+  public unit: ScaleUnit;
+  public enteredDistance: number;
+  public get actualDistance(): number {
+    return Math.sqrt(
+      Math.pow(this.first.x - this.second.x, 2) +
+        Math.pow(this.first.y - this.second.y, 2)
+    );
+  }
+
+  public get factor(): number {
+    return this.enteredDistance / this.actualDistance;
+  }
+
+  public get isDefault(): boolean {
+    return (
+      this.first.isEmpty && this.second.isEmpty && this.enteredDistance === 0
+    );
+  }
+
+  constructor(first: Point, second: Point, distance: number, unit: ScaleUnit) {
+    this.first = first;
+    this.second = second;
+    this.enteredDistance = distance;
+    this.unit = unit;
+  }
+
+  public static Default(): Scale {
+    return new Scale(Point.Empty, Point.Empty, 0, "None");
+  }
+}
