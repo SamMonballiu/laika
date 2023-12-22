@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Test from "./assets/test.jpg";
 // import "./App.css";
 import { Layer, Stage, Image, Line, Circle } from "react-konva";
@@ -9,12 +9,20 @@ import {
   Measurement,
   PolygonalMeasurement,
 } from "./models/measurement";
-import { Point } from "./models/models";
+import { Point, Scale } from "./models/models";
+import { Dialog } from "./components/Dialog";
+import { ScalePicker } from "./components/ScalePicker/ScalePicker";
+
+type Mode = "setscale";
 
 function App() {
+  const [mode, setMode] = useState<Mode>("setscale");
+  const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([]);
   const [stuff] = useImage(Test);
   const [displayScale, setDisplayScale] = useState(0.5);
+  const [scale, setScale] = useState<Scale>(Scale.Default());
   const [clicked, setClicked] = useState<Point[]>([]);
+  const [showScaleDialog, setShowScaleDialog] = useState(false);
 
   const asPoints = React.useMemo(() => {
     return clicked.reduce((acc, val) => {
@@ -40,13 +48,37 @@ function App() {
   ];
 
   const handleClicked = (point: Point) => {
-    point.x = point.x * (1 / displayScale);
-    point.y = point.y * (1 / displayScale);
-    setClicked([...clicked, point]);
+    if (mode === "setscale") {
+      point.x = point.x * (1 / displayScale);
+      point.y = point.y * (1 / displayScale);
+      setTemporaryPoints([...temporaryPoints, point]);
+      //setClicked([...clicked, point]);
+    }
   };
+
+  useEffect(() => {
+    if (mode === "setscale" && temporaryPoints.length === 2) {
+      setShowScaleDialog(true);
+    }
+  }, [temporaryPoints]);
+
+  const scaleDialog = (
+    <Dialog isOpen={showScaleDialog} onClose={() => setShowScaleDialog(false)}>
+      <ScalePicker
+        onConfirm={(distance, unit) => {
+          setScale(
+            new Scale(temporaryPoints[0], temporaryPoints[1], distance, unit)
+          );
+          setShowScaleDialog(false);
+          setTemporaryPoints([]);
+        }}
+      />
+    </Dialog>
+  );
 
   return (
     <>
+      {scaleDialog}
       <div className={styles.container}>
         <Stage width={scaled(stuff?.width)} height={scaled(stuff?.height)}>
           <Layer>
@@ -61,6 +93,17 @@ function App() {
             />
           </Layer>
           <Layer>
+            {!scale.isDefault && (
+              <Line
+                scale={drawScale}
+                x={0}
+                y={0}
+                points={scale.points}
+                tension={0}
+                stroke="orange"
+                strokeWidth={10}
+              />
+            )}
             {measurements.map((mst, idx) => {
               return (
                 <Line
@@ -76,6 +119,17 @@ function App() {
                 />
               );
             })}
+
+            <Line
+              scale={drawScale}
+              x={0}
+              y={0}
+              points={Point.toArray(temporaryPoints)}
+              stroke="magenta"
+              strokeWidth={10}
+              dash={[24, 12]}
+            />
+
             <Line
               scale={drawScale}
               x={0}
@@ -89,6 +143,7 @@ function App() {
               onClick={() => alert("you clicked me")}
             />
 
+            {/* SCALE */}
             <Line
               scale={drawScale}
               x={0}
@@ -101,9 +156,10 @@ function App() {
               onClick={() => alert("that tickles")}
             />
 
-            {clicked.map((pt) => {
+            {temporaryPoints.map((pt, idx) => {
               return (
                 <Circle
+                  key={idx}
                   scale={drawScale}
                   x={pt.x * displayScale}
                   y={pt.y * displayScale}

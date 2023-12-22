@@ -14,10 +14,16 @@ export class Point {
   public get isEmpty() {
     return this.x === 0 && this.y === 0;
   }
+
+  public static toArray(points: Point[]): number[] {
+    return points.reduce((acc, val) => {
+      return acc.concat([val.x, val.y]);
+    }, [] as number[]);
+  }
 }
 
-const ScaleUnits = ["None", "Centimeters", "Meters"] as const;
-type ScaleUnit = (typeof ScaleUnits)[number];
+export const ScaleUnits = ["None", "Centimeters", "Meters"] as const;
+export type ScaleUnit = (typeof ScaleUnits)[number];
 
 export class Scale {
   public first: Point;
@@ -39,6 +45,10 @@ export class Scale {
     return (
       this.first.isEmpty && this.second.isEmpty && this.enteredDistance === 0
     );
+  }
+
+  public get points() {
+    return Point.toArray([this.first, this.second]);
   }
 
   constructor(first: Point, second: Point, distance: number, unit: ScaleUnit) {

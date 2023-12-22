@@ -1,0 +1,29 @@
+.line {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  p {
+    width: 100px;
+    margin: 0;
+  }
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.unitPicker {
+  display: flex;
+  gap: 12px;
+}
+
+.unit {
+  font-size: 0.8em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.selected {
+  border-bottom: 2px solid cornflowerblue;
+}
