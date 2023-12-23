@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Point, Scale } from "../models/models";
 import { LineMeasurement } from "../models/measurement";
 import { Line, Rect, Text } from "react-konva";
+import { Style } from "../models/viewmodels";
 
 interface Props {
   scale: Scale;
@@ -10,6 +11,7 @@ interface Props {
   rotation?: number;
   showDistance?: boolean;
   color?: string;
+  style: Style;
 }
 
 export const KonvaLine: FC<Props> = ({
@@ -19,6 +21,7 @@ export const KonvaLine: FC<Props> = ({
   rotation,
   showDistance = true,
   color = "black",
+  style = "solid",
 }) => {
   const description = line?.getDescription(scale) ?? scale.description;
   const center = line?.center ?? scale.center;
@@ -28,6 +31,12 @@ export const KonvaLine: FC<Props> = ({
   const character = {
     width: (fontSize * 20) / 30,
     height: (fontSize * 38) / 30,
+  };
+  const styles: Record<Style, number[] | undefined> = {
+    solid: undefined,
+    dash: [20, 48],
+    dashdot: [20, 40, 2, 40],
+    dot: [0.5, 23],
   };
 
   const rectangle = {
@@ -67,6 +76,7 @@ export const KonvaLine: FC<Props> = ({
           y: center.y,
         }}
         rotation={rotation}
+        dash={styles[style]}
       />
 
       {showDistance ? (

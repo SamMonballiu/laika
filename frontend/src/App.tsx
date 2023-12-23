@@ -15,23 +15,47 @@ import { ScalePicker } from "./components/ScalePicker/ScalePicker";
 import { KonvaScale } from "./components/KonvaScale";
 import { Sidebar } from "./components/Sidebar";
 import { StatusBar } from "./components/StatusBar";
-import { LuRuler } from "react-icons/lu";
+import { LuRuler, LuPenLine, LuList } from "react-icons/lu";
 import { IconButton } from "./components/IconButton";
 import { ZoomPicker } from "./components/ZoomPicker/ZoomPicker";
 import { KonvaLine } from "./components/KonvaLine";
+import {
+  LineMeasurementViewmodel,
+  MeasurementViewmodel,
+  Style,
+} from "./models/viewmodels";
+import { MeasurementList } from "./components/MeasurementList/MeasurementList";
 
-type Mode = "setscale";
+type Mode = "setscale" | "measureLine";
 
 function App() {
-  const [mode, setMode] = useState<Mode>("setscale");
+  const [mode, setMode] = useState<Mode>("measureLine");
   const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([]);
   const [stuff] = useImage(Test);
-  const [displayScale, setDisplayScale] = useState(0.25);
+  const [displayScale, setDisplayScale] = useState(0.75);
   const [scale, setScale] = useState<Scale>(
-    new Scale(new Point(417, 380), new Point(2291, 380), 12.921, "Meters")
+    new Scale(new Point(417, 380), new Point(2291, 380), 12.192, "Meters")
   );
   const [clicked, setClicked] = useState<Point[]>([]);
   const [showScaleDialog, setShowScaleDialog] = useState(false);
+  const [showList, setShowList] = useState(true);
+  const temp: MeasurementViewmodel[] = [
+    new LineMeasurementViewmodel(
+      new LineMeasurement(new Point(200, 200), new Point(700, 500)),
+      "#1",
+      "#db3e00",
+      "dash"
+    ),
+
+    new LineMeasurementViewmodel(
+      new LineMeasurement(new Point(1300, 1400), new Point(1600, 1200)),
+      "#2",
+      "cyan",
+      "solid"
+    ),
+  ];
+  const [measurements, setMeasurements] =
+    useState<MeasurementViewmodel[]>(temp);
 
   const asPoints = React.useMemo(() => {
     return clicked.reduce((acc, val) => {
@@ -45,19 +69,19 @@ function App() {
     y: displayScale,
   };
 
-  const measurements: Measurement[] = [
-    //new LineMeasurement(new Point(200, 200), new Point(350, 500)),
-    // new PolygonalMeasurement([
-    //   new Point(50, 50),
-    //   new Point(160, 160),
-    //   new Point(50, 200),
-    //   new Point(0, 200),
-    //   // new Point(600, 500),
-    // ]),
-  ];
+  //const measurements: Measurement[] = [
+  //new LineMeasurement(new Point(200, 200), new Point(350, 500)),
+  // new PolygonalMeasurement([
+  //   new Point(50, 50),
+  //   new Point(160, 160),
+  //   new Point(50, 200),
+  //   new Point(0, 200),
+  //   // new Point(600, 500),
+  // ]),
+  //];
 
   const handleClicked = (point: Point) => {
-    if (mode === "setscale") {
+    if (mode === "setscale" || mode === "measureLine") {
       point.x = point.x * (1 / displayScale);
       point.y = point.y * (1 / displayScale);
       setTemporaryPoints([...temporaryPoints, point]);
@@ -66,10 +90,32 @@ function App() {
   };
 
   useEffect(() => {
+    if (temporaryPoints.length === 0) {
+      return;
+    }
     if (mode === "setscale" && temporaryPoints.length === 2) {
       setShowScaleDialog(true);
+    } else if (mode === "measureLine" && temporaryPoints.length === 2) {
+      setMeasurements([
+        ...measurements,
+        new LineMeasurementViewmodel(
+          new LineMeasurement(temporaryPoints[0], temporaryPoints[1]),
+          `#${measurements.length + 1}`,
+          "black",
+          "solid"
+        ),
+      ]);
+      setTemporaryPoints([]);
     }
   }, [temporaryPoints]);
+
+  const handleViewmodelChanged = (idx: number, color: string, style: Style) => {
+    const updated = [...measurements];
+    updated[idx].color = color;
+    updated[idx].style = style;
+
+    setMeasurements(updated);
+  };
 
   const scaleDialog = (
     <Dialog isOpen={showScaleDialog} onClose={() => setShowScaleDialog(false)}>
@@ -102,11 +148,31 @@ function App() {
       <div className={styles.container}>
         <Sidebar>
           <IconButton
-            className={styles.activeButton}
+            className={showList ? styles.activeButton : undefined}
+            icon={<LuList />}
+            action={() => setShowList(!showList)}
+          />
+
+          <IconButton
+            className={mode === "setscale" ? styles.activeButton : undefined}
             icon={<LuRuler />}
-            action={() => alert("todo")}
+            action={() => setMode("setscale")}
+          />
+          <IconButton
+            icon={<LuPenLine />}
+            className={mode === "measureLine" ? styles.activeButton : undefined}
+            action={() => setMode("measureLine")}
           />
         </Sidebar>
+        {showList ? (
+          <section className={styles.list}>
+            <MeasurementList
+              list={measurements}
+              scale={scale}
+              onChange={handleViewmodelChanged}
+            />
+          </section>
+        ) : null}
         <section className={styles.main}>
           <div className={styles.stage}>
             <Stage width={scaled(stuff?.width)} height={scaled(stuff?.height)}>
@@ -130,7 +196,9 @@ function App() {
                   return (
                     <KonvaLine
                       displayScale={displayScale}
-                      line={mst as LineMeasurement}
+                      line={mst.measurement as LineMeasurement}
+                      color={mst.color}
+                      style={mst.style}
                       scale={scale}
                       key={idx}
                     />

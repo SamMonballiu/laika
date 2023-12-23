@@ -1,0 +1,57 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  p {
+    margin: 0;
+  }
+
+  height: 100vh;
+}
+
+.measurement {
+  font-size: 0.9em;
+  padding: 4px 8px;
+
+  transition: background-color 200ms ease;
+
+  &:hover {
+    background: #eee;
+    cursor: pointer;
+  }
+}
+
+.name {
+  font-weight: bolder;
+}
+
+.data {
+  display: flex;
+  gap: 8px;
+}
+
+.color {
+  width: 32px;
+  height: 18px;
+  border: 1px solid black;
+  &:hover {
+    box-shadow: 0 0 3px black;
+  }
+}
+
+.colorPickerBtn {
+  position: relative;
+  border: none !important;
+  padding: 0 !important;
+  background: none !important;
+  margin: 0;
+  border-radius: 0 !important;
+}
+
+.colorPicker {
+  position: absolute;
+  z-index: 10;
+
+  & > .flexbox-fix {
+    display: none !important;
+  }
+}
