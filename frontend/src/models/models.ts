@@ -8,7 +8,7 @@ export class Point {
   }
 
   static get Empty(): Point {
-    return new Point(0, 0);
+    return new Point(-500, -500);
   }
 
   public get isEmpty() {

@@ -26,11 +26,12 @@ import {
 } from "./models/viewmodels";
 import { MeasurementList } from "./components/MeasurementList/MeasurementList";
 
-type Mode = "setscale" | "measureLine";
+type Mode = "setscale" | "measureLine" | "measurePoly";
 
 function App() {
   const [mode, setMode] = useState<Mode>("measureLine");
   const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([]);
+  const [cursorPoint, setCursorPoint] = useState<Point | undefined>(undefined);
   const [stuff] = useImage(Test);
   const [displayScale, setDisplayScale] = useState(0.75);
   const [scale, setScale] = useState<Scale>(
@@ -81,7 +82,11 @@ function App() {
   //];
 
   const handleClicked = (point: Point) => {
-    if (mode === "setscale" || mode === "measureLine") {
+    if (
+      mode === "setscale" ||
+      mode === "measureLine" ||
+      mode === "measurePoly"
+    ) {
       point.x = point.x * (1 / displayScale);
       point.y = point.y * (1 / displayScale);
       setTemporaryPoints([...temporaryPoints, point]);
@@ -142,6 +147,14 @@ function App() {
     [displayScale]
   );
 
+  const tempPoints = React.useMemo(() => {
+    let points = Point.toArray(temporaryPoints);
+    if (cursorPoint) {
+      points = points.concat(cursorPoint.x, cursorPoint.y);
+    }
+    return points;
+  }, [temporaryPoints, cursorPoint]);
+
   return (
     <>
       {scaleDialog}
@@ -175,7 +188,21 @@ function App() {
         ) : null}
         <section className={styles.main}>
           <div className={styles.stage}>
-            <Stage width={scaled(stuff?.width)} height={scaled(stuff?.height)}>
+            <Stage
+              onMouseMove={(evt) => {
+                const pos = evt.target.getStage()?.getPointerPosition();
+                if (pos) {
+                  setCursorPoint(
+                    new Point(
+                      parseInt((pos.x * (1 / displayScale)).toString()),
+                      parseInt((pos.y * (1 / displayScale)).toString())
+                    )
+                  );
+                }
+              }}
+              width={scaled(stuff?.width)}
+              height={scaled(stuff?.height)}
+            >
               <Layer>
                 <Image
                   onClick={(evt) =>
@@ -220,10 +247,12 @@ function App() {
                   scale={drawScale}
                   x={0}
                   y={0}
-                  points={Point.toArray(temporaryPoints)}
+                  points={tempPoints}
                   stroke="magenta"
                   strokeWidth={10}
                   dash={[24, 12]}
+                  closed
+                  listening={false}
                 />
 
                 {/* SCALE */}
@@ -239,19 +268,22 @@ function App() {
                   onClick={() => alert("that tickles")}
                 />
 
-                {temporaryPoints.map((pt, idx) => {
-                  return (
-                    <Circle
-                      key={idx}
-                      scale={drawScale}
-                      x={pt.x * displayScale}
-                      y={pt.y * displayScale}
-                      radius={6}
-                      stroke="magenta"
-                      fill="magenta"
-                    />
-                  );
-                })}
+                {temporaryPoints
+                  .concat(cursorPoint ?? Point.Empty)
+                  .map((pt, idx) => {
+                    return (
+                      <Circle
+                        listening={false}
+                        key={idx}
+                        scale={drawScale}
+                        x={pt.x * displayScale}
+                        y={pt.y * displayScale}
+                        radius={6}
+                        stroke="magenta"
+                        fill="magenta"
+                      />
+                    );
+                  })}
               </Layer>
             </Stage>
           </div>
