@@ -30,8 +30,6 @@ export const KonvaScale: FC<Props> = ({ scale, displayScale }) => {
     <>
       <Line
         scale={drawScale}
-        x={0}
-        y={0}
         points={scale.points}
         tension={0}
         stroke="orange"
