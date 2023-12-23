@@ -25,9 +25,9 @@ function App() {
   const [mode, setMode] = useState<Mode>("setscale");
   const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([]);
   const [stuff] = useImage(Test);
-  const [displayScale, setDisplayScale] = useState(1);
+  const [displayScale, setDisplayScale] = useState(0.25);
   const [scale, setScale] = useState<Scale>(
-    new Scale(new Point(200, 200), new Point(500, 500), 12.921, "Meters")
+    new Scale(new Point(417, 380), new Point(2291, 380), 12.921, "Meters")
   );
   const [clicked, setClicked] = useState<Point[]>([]);
   const [showScaleDialog, setShowScaleDialog] = useState(false);
@@ -88,7 +88,7 @@ function App() {
     () => (
       <ZoomPicker
         value={displayScale}
-        options={[0.5, 1, 1.25, 1.5, 2]}
+        options={[0.25, 0.5, 0.75, 1, 1.25, 1.5, 2]}
         onSelect={(zoom) => setDisplayScale(zoom)}
       />
     ),
@@ -140,6 +140,17 @@ function App() {
                     />
                   );
                 })}
+
+                {/* <Rect
+                  scale={drawScale}
+                  rotation={0}
+                  offset={{ x: 100, y: 100 }}
+                  x={400}
+                  y={400}
+                  width={200}
+                  height={200}
+                  fill="red"
+                /> */}
 
                 <Line
                   scale={drawScale}

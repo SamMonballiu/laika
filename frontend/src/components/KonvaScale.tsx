@@ -1,29 +1,41 @@
-import { FC } from "react";
-import { Line, Rect, Text } from "react-konva";
+import { FC, useEffect, useState } from "react";
+import { Circle, Line, Rect, Text } from "react-konva";
 import { Scale } from "../models/models";
 
 interface Props {
   scale: Scale;
   displayScale: number;
+  rotation?: number;
 }
-export const KonvaScale: FC<Props> = ({ scale, displayScale }) => {
-  const drawScale = { x: displayScale, y: displayScale };
 
+export const KonvaScale: FC<Props> = ({ scale, displayScale, rotation }) => {
+  const drawScale = { x: displayScale, y: displayScale };
+  const fontSize = 40;
   const character = {
-    width: 20,
-    height: 38,
+    width: (fontSize * 20) / 30,
+    height: (fontSize * 38) / 30,
   };
 
   const rectangle = {
     width: scale.description.length * character.width * displayScale,
     height: character.height * displayScale,
-    x: (scale.center.x - (scale.description.length * 20) / 2) * displayScale,
-    y: (scale.center.y - character.height / 2) * displayScale,
+    x: scale.center.x * displayScale,
+    y: scale.center.y * displayScale,
+    offset: {
+      x: (scale.description.length * character.width * displayScale) / 2,
+      y: (character.height * displayScale) / 2,
+    },
   };
 
   const text = {
-    x: (scale.center.x - (scale.description.length * 18) / 2) * displayScale,
-    y: (scale.center.y + 8 - character.height / 2) * displayScale,
+    width: scale.description.length * character.width,
+    height: character.height * displayScale,
+    x: scale.center.x * displayScale,
+    y: scale.center.y * displayScale,
+    offset: {
+      x: (scale.description.length * character.width) / 2,
+      y: (character.height * displayScale) / 2,
+    },
   };
 
   return (
@@ -35,21 +47,40 @@ export const KonvaScale: FC<Props> = ({ scale, displayScale }) => {
         stroke="orange"
         strokeWidth={10 * displayScale}
         lineCap="round"
+        x={scale.center.x * displayScale}
+        y={scale.center.y * displayScale}
+        offset={{
+          x: scale.center.x,
+          y: scale.center.y,
+        }}
+        rotation={rotation}
       />
+
       <Rect
         fill="rgba(255, 255, 255, 0.85"
         stroke="rgba(0, 0, 0, .25)"
         strokeWidth={2 * displayScale}
         {...rectangle}
+        rotation={rotation}
       />
+
+      {/* <Circle
+        fill="cyan"
+        radius={4}
+        x={scale.first.x * displayScale}
+        y={scale.first.y * displayScale}
+      /> */}
 
       <Text
         scale={drawScale}
         text={scale.description}
         fill="black"
         fontFamily="DM Mono"
-        fontSize={30}
+        fontSize={fontSize}
         {...text}
+        rotation={rotation}
+        align="center"
+        verticalAlign="middle"
       />
     </>
   );
