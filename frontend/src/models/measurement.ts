@@ -1,4 +1,4 @@
-import { Point, Scale } from "./models";
+import { Point, Scale, ScaleUnit } from "./models";
 
 const calculatePolygonArea = (points: Point[]) => {
   let area = 0;
@@ -71,5 +71,26 @@ export class LineMeasurement extends Measurement {
     const dist = this.calcDistance(this.start, this.end);
     const scaledDistance = dist * scale.factor;
     return scaledDistance;
+  }
+
+  public get center(): Point {
+    return new Point(
+      Math.abs(this.end.x + this.start.x) / 2,
+      Math.abs(this.end.y + this.start.y) / 2
+    );
+  }
+
+  public getDescription(scale: Scale): string {
+    const unitMap: Record<ScaleUnit, string> = {
+      None: "",
+      Meters: "m",
+      Centimeters: "cm",
+    };
+    const distance = this.GetDistance(scale)!.toFixed(2);
+    if (scale.unit === "None") {
+      return distance!.toString();
+    }
+
+    return `${distance} ${unitMap[scale.unit]}`;
   }
 }

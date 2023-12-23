@@ -18,6 +18,7 @@ import { StatusBar } from "./components/StatusBar";
 import { LuRuler } from "react-icons/lu";
 import { IconButton } from "./components/IconButton";
 import { ZoomPicker } from "./components/ZoomPicker/ZoomPicker";
+import { KonvaLine } from "./components/KonvaLine";
 
 type Mode = "setscale";
 
@@ -45,7 +46,7 @@ function App() {
   };
 
   const measurements: Measurement[] = [
-    // new LineMeasurement(new Point(200, 200), new Point(350, 500)),
+    //new LineMeasurement(new Point(200, 200), new Point(350, 500)),
     // new PolygonalMeasurement([
     //   new Point(50, 50),
     //   new Point(160, 160),
@@ -127,16 +128,11 @@ function App() {
 
                 {measurements.map((mst, idx) => {
                   return (
-                    <Line
+                    <KonvaLine
+                      displayScale={displayScale}
+                      line={mst as LineMeasurement}
+                      scale={scale}
                       key={idx}
-                      scale={drawScale}
-                      x={0}
-                      y={0}
-                      // closed
-                      points={mst.asPointsArray}
-                      tension={0}
-                      stroke="black"
-                      strokeWidth={10}
                     />
                   );
                 })}
