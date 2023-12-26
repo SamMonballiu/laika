@@ -19,12 +19,6 @@ export class Point {
     return `[${this.x.toFixed(0)}, ${this.y.toFixed(0)}]`;
   }
 
-  public static toArray(points: Point[]): number[] {
-    return points.reduce((acc, val) => {
-      return acc.concat([val.x, val.y]);
-    }, [] as number[]);
-  }
-
   public align(other: Point, tolerance: number): Point {
     const difference = {
       horizontal: Math.abs(this.x - other.x),
@@ -64,6 +58,21 @@ export class Point {
   }
 }
 
+export const Points = {
+  toNumberArray: (points: Point[]): number[] => {
+    return points.reduce((acc, val) => {
+      return acc.concat([val.x, val.y]);
+    }, [] as number[]);
+  },
+
+  mirror: (first: Point, second: Point) => {
+    const points = [first, second];
+    points.splice(1, 0, new Point(second.x, first.y));
+    points.splice(3, 0, new Point(first.x, second.y));
+    return points;
+  },
+};
+
 export const ScaleUnits = ["None", "Centimeters", "Meters"] as const;
 export type ScaleUnit = (typeof ScaleUnits)[number];
 
@@ -90,7 +99,7 @@ export class Scale {
   }
 
   public get points() {
-    return Point.toArray([this.first, this.second]);
+    return Points.toNumberArray([this.first, this.second]);
   }
 
   public get center(): Point {

@@ -9,13 +9,18 @@ import {
   Measurement,
   PolygonalMeasurement,
 } from "./models/measurement";
-import { Point, Scale } from "./models/models";
+import { Point, Points, Scale } from "./models/models";
 import { Dialog } from "./components/Dialog";
 import { ScalePicker } from "./components/ScalePicker/ScalePicker";
 import { KonvaScale } from "./components/KonvaScale";
 import { Sidebar } from "./components/Sidebar";
 import { StatusBar } from "./components/StatusBar";
-import { LuRuler, LuPenLine, LuList } from "react-icons/lu";
+import {
+  LuRuler,
+  LuPenLine,
+  LuList,
+  LuRectangleHorizontal,
+} from "react-icons/lu";
 import { IconButton } from "./components/IconButton";
 import { ZoomPicker } from "./components/ZoomPicker/ZoomPicker";
 import { KonvaLine } from "./components/KonvaLine";
@@ -28,14 +33,27 @@ import {
 import { MeasurementList } from "./components/MeasurementList/MeasurementList";
 import { LiaDrawPolygonSolid } from "react-icons/lia";
 
-type Mode = "setscale" | "measureLine" | "measurePoly";
+const Modes = [
+  "setscale",
+  "measureLine",
+  "measureRect",
+  "measurePoly",
+] as const;
+type Mode = (typeof Modes)[number];
+
+const icons: Record<Mode, React.ReactNode> = {
+  setscale: <LuRuler />,
+  measureLine: <LuPenLine />,
+  measurePoly: <LiaDrawPolygonSolid />,
+  measureRect: <LuRectangleHorizontal />,
+};
 
 function App() {
-  const [mode, setMode] = useState<Mode>("measurePoly");
+  const [mode, setMode] = useState<Mode>("measureRect");
   const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([
     new Point(100, 100),
-    new Point(300, 100),
-    new Point(300, 300),
+    // new Point(300, 100),
+    // new Point(300, 300),
   ]);
   const [cursorPoint, setCursorPoint] = useState<Point | undefined>(undefined);
   const [stuff] = useImage(Test);
@@ -91,19 +109,37 @@ function App() {
     if (!point) {
       return;
     }
-    if (
+
+    point.x = point.x * (1 / displayScale);
+    point.y = point.y * (1 / displayScale);
+
+    if (!cursorPoint) {
+      setCursorPoint(point);
+      setTemporaryPoints([new Point(point.x, point.y)]);
+      return;
+    }
+
+    if (mode === "measureRect" && temporaryPoints.length === 1) {
+      // Mirror first point and cursor point to make a rectangle
+      const first = temporaryPoints[0];
+      const second = point;
+      const points = Points.mirror(first, second);
+
+      const model = new PolygonalMeasurementViewmodel(
+        new PolygonalMeasurement(points),
+        `#${measurements.length + 1}`,
+        "black",
+        "solid"
+      );
+
+      setTemporaryPoints([]);
+      setCursorPoint(undefined);
+      setMeasurements([...measurements, model]);
+    } else if (
       mode === "setscale" ||
       mode === "measureLine" ||
       mode === "measurePoly"
     ) {
-      point.x = point.x * (1 / displayScale);
-      point.y = point.y * (1 / displayScale);
-      if (!cursorPoint) {
-        setCursorPoint(point);
-        setTemporaryPoints([new Point(point.x, point.y)]);
-        return;
-      }
-
       const pt = new Point(point.x, point.y);
       if (pt.isCloseTo(temporaryPoints[0])) {
         const model = new PolygonalMeasurementViewmodel(
@@ -121,22 +157,8 @@ function App() {
           new Point(cursorPoint.x, cursorPoint.y),
         ]);
       }
-      //setClicked([...clicked, point]);
     }
   };
-
-  // const handleClicked = (point: Point) => {
-  //   if (
-  //     mode === "setscale" ||
-  //     mode === "measureLine" ||
-  //     mode === "measurePoly"
-  //   ) {
-  //     point.x = point.x * (1 / displayScale);
-  //     point.y = point.y * (1 / displayScale);
-  //     setTemporaryPoints([...temporaryPoints, point]);
-  //     //setClicked([...clicked, point]);
-  //   }
-  // };
 
   useEffect(() => {
     if (temporaryPoints.length === 0) {
@@ -193,11 +215,19 @@ function App() {
   );
 
   const tempPoints = React.useMemo(() => {
-    let points = Point.toArray(temporaryPoints);
+    let points = [...temporaryPoints];
+
     if (cursorPoint) {
-      points = points.concat(cursorPoint.x, cursorPoint.y);
+      points = points.concat(cursorPoint);
     }
-    return points;
+    if (
+      mode === "measureRect" &&
+      points.length === 2 &&
+      points.every((x) => x !== undefined)
+    ) {
+      points = Points.mirror(points[0], points[1]);
+    }
+    return Points.toNumberArray(points);
   }, [temporaryPoints, cursorPoint]);
 
   return (
@@ -211,21 +241,13 @@ function App() {
             action={() => setShowList(!showList)}
           />
 
-          <IconButton
-            className={mode === "setscale" ? styles.activeButton : undefined}
-            icon={<LuRuler />}
-            action={() => setMode("setscale")}
-          />
-          <IconButton
-            icon={<LuPenLine />}
-            className={mode === "measureLine" ? styles.activeButton : undefined}
-            action={() => setMode("measureLine")}
-          />
-          <IconButton
-            icon={<LiaDrawPolygonSolid />}
-            className={mode === "measurePoly" ? styles.activeButton : undefined}
-            action={() => setMode("measurePoly")}
-          />
+          {Modes.map((md) => (
+            <IconButton
+              className={mode === md ? styles.activeButton : undefined}
+              icon={icons[md]}
+              action={() => setMode(md)}
+            />
+          ))}
         </Sidebar>
         {showList ? (
           <section className={styles.list}>
@@ -340,7 +362,7 @@ function App() {
                         y={pt.y * displayScale}
                         radius={6}
                         stroke="magenta"
-                        fill="magenta"
+                        fill="red"
                       />
                     );
                   })}
