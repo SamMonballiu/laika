@@ -1,4 +1,8 @@
-import { LineMeasurement, Measurement } from "./measurement";
+import {
+  LineMeasurement,
+  Measurement,
+  PolygonalMeasurement,
+} from "./measurement";
 
 const Styles = ["solid", "dash", "dot", "dashdot"] as const;
 export type Style = (typeof Styles)[number];
@@ -25,6 +29,17 @@ export abstract class MeasurementViewmodel {
 export class LineMeasurementViewmodel extends MeasurementViewmodel {
   constructor(
     measurement: LineMeasurement,
+    name: string,
+    color: string,
+    style: Style
+  ) {
+    super(measurement, name, color, style);
+  }
+}
+
+export class PolygonalMeasurementViewmodel extends MeasurementViewmodel {
+  constructor(
+    measurement: PolygonalMeasurement,
     name: string,
     color: string,
     style: Style

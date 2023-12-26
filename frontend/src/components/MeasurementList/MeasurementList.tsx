@@ -1,7 +1,10 @@
 import { Popover } from "@headlessui/react";
 import { FC } from "react";
 import { CompactPicker } from "react-color";
-import { LineMeasurement } from "../../models/measurement";
+import {
+  LineMeasurement,
+  PolygonalMeasurement,
+} from "../../models/measurement";
 import { Scale } from "../../models/models";
 import { MeasurementViewmodel, Style } from "../../models/viewmodels";
 import styles from "./MeasurementList.module.scss";
@@ -35,6 +38,8 @@ interface MeasurementProps {
 const Measurement: FC<MeasurementProps> = ({ model, scale, onChange }) => {
   const data =
     model.measurement instanceof LineMeasurement
+      ? model.measurement.getDescription(scale)
+      : model.measurement instanceof PolygonalMeasurement
       ? model.measurement.getDescription(scale)
       : "";
   return (

@@ -22,15 +22,21 @@ import { KonvaLine } from "./components/KonvaLine";
 import {
   LineMeasurementViewmodel,
   MeasurementViewmodel,
+  PolygonalMeasurementViewmodel,
   Style,
 } from "./models/viewmodels";
 import { MeasurementList } from "./components/MeasurementList/MeasurementList";
+import { LiaDrawPolygonSolid } from "react-icons/lia";
 
 type Mode = "setscale" | "measureLine" | "measurePoly";
 
 function App() {
-  const [mode, setMode] = useState<Mode>("measureLine");
-  const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([]);
+  const [mode, setMode] = useState<Mode>("measurePoly");
+  const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([
+    new Point(100, 100),
+    new Point(300, 100),
+    new Point(300, 300),
+  ]);
   const [cursorPoint, setCursorPoint] = useState<Point | undefined>(undefined);
   const [stuff] = useImage(Test);
   const [displayScale, setDisplayScale] = useState(0.75);
@@ -82,6 +88,9 @@ function App() {
   //];
 
   const handleClicked = (point: Point) => {
+    if (!point) {
+      return;
+    }
     if (
       mode === "setscale" ||
       mode === "measureLine" ||
@@ -89,10 +98,45 @@ function App() {
     ) {
       point.x = point.x * (1 / displayScale);
       point.y = point.y * (1 / displayScale);
-      setTemporaryPoints([...temporaryPoints, point]);
+      if (!cursorPoint) {
+        setCursorPoint(point);
+        setTemporaryPoints([new Point(point.x, point.y)]);
+        return;
+      }
+
+      const pt = new Point(point.x, point.y);
+      if (pt.isCloseTo(temporaryPoints[0])) {
+        const model = new PolygonalMeasurementViewmodel(
+          new PolygonalMeasurement(temporaryPoints),
+          `#${measurements.length + 1}`,
+          "black",
+          "solid"
+        );
+        setTemporaryPoints([]);
+        setCursorPoint(undefined);
+        setMeasurements([...measurements, model]);
+      } else {
+        setTemporaryPoints([
+          ...temporaryPoints,
+          new Point(cursorPoint.x, cursorPoint.y),
+        ]);
+      }
       //setClicked([...clicked, point]);
     }
   };
+
+  // const handleClicked = (point: Point) => {
+  //   if (
+  //     mode === "setscale" ||
+  //     mode === "measureLine" ||
+  //     mode === "measurePoly"
+  //   ) {
+  //     point.x = point.x * (1 / displayScale);
+  //     point.y = point.y * (1 / displayScale);
+  //     setTemporaryPoints([...temporaryPoints, point]);
+  //     //setClicked([...clicked, point]);
+  //   }
+  // };
 
   useEffect(() => {
     if (temporaryPoints.length === 0) {
@@ -111,6 +155,7 @@ function App() {
         ),
       ]);
       setTemporaryPoints([]);
+      setCursorPoint(undefined);
     }
   }, [temporaryPoints]);
 
@@ -176,6 +221,11 @@ function App() {
             className={mode === "measureLine" ? styles.activeButton : undefined}
             action={() => setMode("measureLine")}
           />
+          <IconButton
+            icon={<LiaDrawPolygonSolid />}
+            className={mode === "measurePoly" ? styles.activeButton : undefined}
+            action={() => setMode("measurePoly")}
+          />
         </Sidebar>
         {showList ? (
           <section className={styles.list}>
@@ -190,14 +240,23 @@ function App() {
           <div className={styles.stage}>
             <Stage
               onMouseMove={(evt) => {
+                if (temporaryPoints.length === 0) {
+                  return;
+                }
                 const pos = evt.target.getStage()?.getPointerPosition();
                 if (pos) {
-                  setCursorPoint(
-                    new Point(
-                      parseInt((pos.x * (1 / displayScale)).toString()),
-                      parseInt((pos.y * (1 / displayScale)).toString())
-                    )
+                  let cursorPoint = new Point(
+                    parseInt((pos.x * (1 / displayScale)).toString()),
+                    parseInt((pos.y * (1 / displayScale)).toString())
+                  ).align(
+                    temporaryPoints[temporaryPoints.length - 1],
+                    20 * (1 / displayScale)
                   );
+
+                  if (cursorPoint.sharesAxisWith(temporaryPoints[0])) {
+                    cursorPoint = cursorPoint.align(temporaryPoints[0], 20);
+                  }
+                  setCursorPoint(cursorPoint);
                 }
               }}
               width={scaled(stuff?.width)}
@@ -223,11 +282,12 @@ function App() {
                   return (
                     <KonvaLine
                       displayScale={displayScale}
-                      line={mst.measurement as LineMeasurement}
+                      measurement={mst.measurement}
                       color={mst.color}
                       style={mst.style}
                       scale={scale}
                       key={idx}
+                      rotation={0}
                     />
                   );
                 })}
@@ -249,8 +309,8 @@ function App() {
                   y={0}
                   points={tempPoints}
                   stroke="magenta"
-                  strokeWidth={10}
-                  dash={[24, 12]}
+                  strokeWidth={2}
+                  // dash={[24, 120]}
                   closed
                   listening={false}
                 />

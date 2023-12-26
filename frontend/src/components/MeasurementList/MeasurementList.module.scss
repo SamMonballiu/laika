@@ -27,11 +27,12 @@
 .data {
   display: flex;
   gap: 8px;
+  justify-content: space-between;
 }
 
 .color {
-  width: 32px;
-  height: 18px;
+  width: 16px;
+  height: 10px;
   border: 1px solid black;
   &:hover {
     box-shadow: 0 0 3px black;
@@ -39,7 +40,7 @@
 }
 
 .colorPickerBtn {
-  position: relative;
+  // position: relative;
   border: none !important;
   padding: 0 !important;
   background: none !important;

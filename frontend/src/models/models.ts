@@ -24,6 +24,44 @@ export class Point {
       return acc.concat([val.x, val.y]);
     }, [] as number[]);
   }
+
+  public align(other: Point, tolerance: number): Point {
+    const difference = {
+      horizontal: Math.abs(this.x - other.x),
+      vertical: Math.abs(this.y - other.y),
+    };
+
+    if (difference.horizontal <= tolerance) {
+      return new Point(other.x, this.y);
+    }
+
+    if (difference.vertical <= tolerance) {
+      return new Point(this.x, other.y);
+    }
+
+    return this;
+  }
+
+  public sharesAxisWith(other: Point): boolean {
+    const tolerance = 20;
+    const result =
+      Math.abs(this.x - other.x) < tolerance ||
+      Math.abs(this.y - other.y) < tolerance;
+    return result;
+  }
+
+  public isCloseTo(other: Point) {
+    if (!other) {
+      return false;
+    }
+
+    const tolerance = 20;
+
+    return (
+      Math.abs(this.x - other.x) < tolerance &&
+      Math.abs(this.y - other.y) < tolerance
+    );
+  }
 }
 
 export const ScaleUnits = ["None", "Centimeters", "Meters"] as const;

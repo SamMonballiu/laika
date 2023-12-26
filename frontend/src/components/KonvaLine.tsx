@@ -1,31 +1,31 @@
 import { FC } from "react";
-import { Point, Scale } from "../models/models";
-import { LineMeasurement } from "../models/measurement";
+import { Scale } from "../models/models";
+import { Measurement } from "../models/measurement";
 import { Line, Rect, Text } from "react-konva";
 import { Style } from "../models/viewmodels";
 
 interface Props {
   scale: Scale;
-  line?: LineMeasurement;
+  measurement?: Measurement;
   displayScale: number;
   rotation?: number;
   showDistance?: boolean;
   color?: string;
-  style: Style;
+  style?: Style;
 }
 
 export const KonvaLine: FC<Props> = ({
   displayScale,
   scale,
-  line,
+  measurement,
   rotation,
   showDistance = true,
   color = "black",
   style = "solid",
 }) => {
-  const description = line?.getDescription(scale) ?? scale.description;
-  const center = line?.center ?? scale.center;
-  const points = line?.asPointsArray ?? scale.points;
+  const description = measurement?.getDescription(scale) ?? scale.description;
+  const center = measurement?.center ?? scale.center;
+  const points = measurement?.asPointsArray ?? scale.points;
   const drawScale = { x: displayScale, y: displayScale };
   const fontSize = 40;
   const character = {
@@ -67,7 +67,7 @@ export const KonvaLine: FC<Props> = ({
         points={points}
         closed
         stroke={color}
-        strokeWidth={10 * displayScale}
+        strokeWidth={5 * displayScale}
         lineCap="round"
         x={center.x * displayScale}
         y={center.y * displayScale}
@@ -77,6 +77,7 @@ export const KonvaLine: FC<Props> = ({
         }}
         rotation={rotation}
         dash={styles[style]}
+        listening={false}
       />
 
       {showDistance ? (
@@ -87,6 +88,7 @@ export const KonvaLine: FC<Props> = ({
             strokeWidth={2 * displayScale}
             {...rectangle}
             rotation={rotation}
+            listening={false}
           />
 
           {/* <Circle
@@ -106,6 +108,7 @@ export const KonvaLine: FC<Props> = ({
             rotation={rotation}
             align="center"
             verticalAlign="middle"
+            listening={false}
           />
         </>
       ) : null}
