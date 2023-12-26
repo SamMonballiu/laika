@@ -3,6 +3,7 @@ import { Scale } from "../models/models";
 import { Measurement } from "../models/measurement";
 import { Line, Rect, Text } from "react-konva";
 import { Style } from "../models/viewmodels";
+import { MeasurementInfo } from "./MeasurementInfo/MeasurementInfo";
 
 interface Props {
   scale: Scale;
@@ -23,15 +24,9 @@ export const KonvaLine: FC<Props> = ({
   color = "black",
   style = "solid",
 }) => {
-  const description = measurement?.getDescription(scale) ?? scale.description;
   const center = measurement?.center ?? scale.center;
   const points = measurement?.asPointsArray ?? scale.points;
   const drawScale = { x: displayScale, y: displayScale };
-  const fontSize = 40;
-  const character = {
-    width: (fontSize * 20) / 30,
-    height: (fontSize * 38) / 30,
-  };
   const styles: Record<Style, number[] | undefined> = {
     solid: undefined,
     dash: [20, 48],
@@ -39,27 +34,6 @@ export const KonvaLine: FC<Props> = ({
     dot: [0.5, 23],
   };
 
-  const rectangle = {
-    width: description.length * character.width * displayScale,
-    height: character.height * displayScale,
-    x: center.x * displayScale,
-    y: center.y * displayScale,
-    offset: {
-      x: (description.length * character.width * displayScale) / 2,
-      y: (character.height * displayScale) / 2,
-    },
-  };
-
-  const text = {
-    width: description.length * character.width,
-    height: character.height * displayScale,
-    x: center.x * displayScale,
-    y: center.y * displayScale,
-    offset: {
-      x: (description.length * character.width) / 2,
-      y: (character.height * displayScale) / 2,
-    },
-  };
   return (
     <>
       <Line
@@ -81,36 +55,13 @@ export const KonvaLine: FC<Props> = ({
       />
 
       {showDistance ? (
-        <>
-          <Rect
-            fill="rgba(255, 255, 255, 0.85"
-            stroke="rgba(0, 0, 0, .25)"
-            strokeWidth={2 * displayScale}
-            {...rectangle}
-            rotation={rotation}
-            listening={false}
-          />
-
-          {/* <Circle
-        fill="cyan"
-        radius={4}
-        x={scale.first.x * displayScale}
-        y={scale.first.y * displayScale}
-      /> */}
-
-          <Text
-            scale={drawScale}
-            text={description}
-            fill="black"
-            fontFamily="DM Mono"
-            fontSize={fontSize}
-            {...text}
-            rotation={rotation}
-            align="center"
-            verticalAlign="middle"
-            listening={false}
-          />
-        </>
+        <MeasurementInfo
+          measurement={measurement}
+          scale={scale}
+          rotation={rotation}
+          fontSize={40}
+          displayScale={displayScale}
+        />
       ) : null}
     </>
   );
