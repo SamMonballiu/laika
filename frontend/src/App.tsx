@@ -181,6 +181,12 @@ function App() {
     }
   }, [temporaryPoints]);
 
+  React.useEffect(() => {
+    if (temporaryPoints.length === 0) {
+      setCursorPoint(undefined);
+    }
+  }, [temporaryPoints]);
+
   const handleViewmodelChanged = (idx: number, color: string, style: Style) => {
     const updated = [...measurements];
     updated[idx].color = color;
@@ -362,7 +368,7 @@ function App() {
                         y={pt.y * displayScale}
                         radius={6}
                         stroke="magenta"
-                        fill="red"
+                        fill="magenta"
                       />
                     );
                   })}
