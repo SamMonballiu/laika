@@ -105,6 +105,32 @@ function App() {
   // ]),
   //];
 
+  useEffect(() => {
+    const contextClickHandler = (event: Event) => {
+      event.preventDefault();
+    }
+
+    document.addEventListener("contextmenu", contextClickHandler);
+
+    return () => document.removeEventListener("contextmenu", contextClickHandler);
+  }, [])
+
+  const handleRightClick = () => {
+    if ((mode === "measurePoly" || mode === "measureLine" || mode === "measureRect") && temporaryPoints.length === 1) {
+      setTemporaryPoints([]);
+      setCursorPoint(undefined);
+      return;
+    }
+
+    switch (mode) {
+      case "measurePoly":
+        temporaryPoints.pop();
+        setTemporaryPoints([...temporaryPoints]);
+        break;
+    }
+  }
+
+
   const handleClicked = (point: Point) => {
     if (!point) {
       return;
@@ -292,10 +318,17 @@ function App() {
             >
               <Layer>
                 <Image
-                  onClick={(evt) =>
-                    handleClicked(
-                      evt.target.getStage()?.getPointerPosition() as Point
-                    )
+                  onClick={(evt) => {
+                    if (evt.evt.button === 2) {
+                      handleRightClick();
+                    }
+
+                    else {
+                      handleClicked(
+                        evt.target.getStage()?.getPointerPosition() as Point
+                      )
+                    }
+                  }
                   }
                   image={stuff}
                   scale={drawScale}
