@@ -104,7 +104,7 @@ function App() {
   }, [])
 
   const handleRightClick = () => {
-    if (isModeOneOf("measurePoly", "measureLine", "measureRect") && temporaryPoints.length === 1) {
+    if (isModeOneOf("measurePoly", "measureLine", "measureRect", "setscale") && temporaryPoints.length === 1) {
       endMeasurement();
       return;
     }
