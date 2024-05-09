@@ -6,7 +6,6 @@ import useImage from "use-image";
 import styles from "./Main.module.scss";
 import {
   LineMeasurement,
-  Measurement,
   PolygonalMeasurement,
 } from "./models/measurement";
 import { Point, Points, Scale } from "./models/models";
@@ -32,14 +31,8 @@ import {
 } from "./models/viewmodels";
 import { MeasurementList } from "./components/MeasurementList/MeasurementList";
 import { LiaDrawPolygonSolid } from "react-icons/lia";
-
-const Modes = [
-  "setscale",
-  "measureLine",
-  "measureRect",
-  "measurePoly",
-] as const;
-type Mode = (typeof Modes)[number];
+import { Mode, Modes, useMode } from "./hooks/useMode";
+import { useMeasure } from "./hooks/useMeasure";
 
 const icons: Record<Mode, React.ReactNode> = {
   setscale: <LuRuler />,
@@ -49,13 +42,8 @@ const icons: Record<Mode, React.ReactNode> = {
 };
 
 function App() {
-  const [mode, setMode] = useState<Mode>("measureRect");
-  const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([
-    new Point(100, 100),
-    // new Point(300, 100),
-    // new Point(300, 300),
-  ]);
-  const [cursorPoint, setCursorPoint] = useState<Point | undefined>(undefined);
+  const { mode, setMode, isOneOf: isModeOneOf } = useMode();
+  const { temporaryPoints, cursorPoint, endMeasurement, cancelLastPoint, addPoint, setCursorPoint } = useMeasure();
   const [stuff] = useImage(Test);
   const [displayScale, setDisplayScale] = useState(0.75);
   const [scale, setScale] = useState<Scale>(
@@ -116,16 +104,14 @@ function App() {
   }, [])
 
   const handleRightClick = () => {
-    if ((mode === "measurePoly" || mode === "measureLine" || mode === "measureRect") && temporaryPoints.length === 1) {
-      setTemporaryPoints([]);
-      setCursorPoint(undefined);
+    if (isModeOneOf("measurePoly", "measureLine", "measureRect") && temporaryPoints.length === 1) {
+      endMeasurement();
       return;
     }
 
     switch (mode) {
       case "measurePoly":
-        temporaryPoints.pop();
-        setTemporaryPoints([...temporaryPoints]);
+        cancelLastPoint();
         break;
     }
   }
@@ -141,7 +127,7 @@ function App() {
 
     if (!cursorPoint) {
       setCursorPoint(point);
-      setTemporaryPoints([new Point(point.x, point.y)]);
+      addPoint(new Point(point.x, point.y));
       return;
     }
 
@@ -158,14 +144,9 @@ function App() {
         "solid"
       );
 
-      setTemporaryPoints([]);
-      setCursorPoint(undefined);
       setMeasurements([...measurements, model]);
-    } else if (
-      mode === "setscale" ||
-      mode === "measureLine" ||
-      mode === "measurePoly"
-    ) {
+      endMeasurement();
+    } else if (isModeOneOf("measureLine", "measurePoly")) {
       const pt = new Point(point.x, point.y);
       if (pt.isCloseTo(temporaryPoints[0])) {
         const model = new PolygonalMeasurementViewmodel(
@@ -174,14 +155,10 @@ function App() {
           "black",
           "solid"
         );
-        setTemporaryPoints([]);
-        setCursorPoint(undefined);
         setMeasurements([...measurements, model]);
+        endMeasurement();
       } else {
-        setTemporaryPoints([
-          ...temporaryPoints,
-          new Point(cursorPoint.x, cursorPoint.y),
-        ]);
+        addPoint(new Point(cursorPoint.x, cursorPoint.y));
       }
     }
   };
@@ -202,14 +179,7 @@ function App() {
           "solid"
         ),
       ]);
-      setTemporaryPoints([]);
-      setCursorPoint(undefined);
-    }
-  }, [temporaryPoints]);
-
-  React.useEffect(() => {
-    if (temporaryPoints.length === 0) {
-      setCursorPoint(undefined);
+      endMeasurement();
     }
   }, [temporaryPoints]);
 
@@ -229,7 +199,7 @@ function App() {
             new Scale(temporaryPoints[0], temporaryPoints[1], distance, unit)
           );
           setShowScaleDialog(false);
-          setTemporaryPoints([]);
+          endMeasurement();
         }}
       />
     </Dialog>
@@ -408,7 +378,16 @@ function App() {
               </Layer>
             </Stage>
           </div>
-          <StatusBar>{zoomPicker}</StatusBar>
+          <StatusBar>
+            {tempPoints.reduce((acc, val) => {
+              if (tempPoints.indexOf(val) %2 > 0 && tempPoints.indexOf(val) > 0) {
+                return acc + val.toFixed(0) + "], ["
+              } else {
+                return acc + val.toFixed(0) + " , "
+              }
+            }, "[")}
+            {zoomPicker}
+            </StatusBar>
         </section>
       </div>
     </>
