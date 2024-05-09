@@ -44,12 +44,10 @@ export class Point {
     return result;
   }
 
-  public isCloseTo(other: Point) {
+  public isCloseTo(other: Point | undefined, tolerance = 20) {
     if (!other) {
       return false;
     }
-
-    const tolerance = 20;
 
     return (
       Math.abs(this.x - other.x) < tolerance &&

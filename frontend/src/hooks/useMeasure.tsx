@@ -25,6 +25,8 @@ export const useMeasure = () => {
     temporaryPoints.pop();
     setTemporaryPoints([...temporaryPoints]);
   }
+
+  const getLastPoint = () => [...temporaryPoints].pop();
   
   const addPoint = (point: Point) => {
     setTemporaryPoints([...temporaryPoints, point]);
@@ -35,6 +37,7 @@ export const useMeasure = () => {
     temporaryPoints,
     endMeasurement,
     cancelLastPoint,
+    getLastPoint,
     addPoint,
     setCursorPoint,
   }

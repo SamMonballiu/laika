@@ -43,7 +43,7 @@ const icons: Record<Mode, React.ReactNode> = {
 
 function App() {
   const mode = useMode();
-  const { temporaryPoints, cursorPoint, endMeasurement, cancelLastPoint, addPoint, setCursorPoint } = useMeasure();
+  const { temporaryPoints, cursorPoint, endMeasurement, cancelLastPoint, addPoint, setCursorPoint, getLastPoint } = useMeasure();
   const [stuff] = useImage(Test);
   const [displayScale, setDisplayScale] = useState(0.75);
   const [scale, setScale] = useState<Scale>(
@@ -148,7 +148,10 @@ function App() {
       endMeasurement();
     } else if (mode.isOneOf("setscale", "measureLine", "measurePoly")) {
       const pt = new Point(point.x, point.y);
-      if (mode.value !== "setscale" && pt.isCloseTo(temporaryPoints[0])) {
+
+      if (pt.isCloseTo(getLastPoint())) {
+        return;
+      } else if (mode.value !== "setscale" && pt.isCloseTo(temporaryPoints[0])) {
         const model = new PolygonalMeasurementViewmodel(
           new PolygonalMeasurement(temporaryPoints),
           `#${measurements.length + 1}`,
@@ -379,13 +382,7 @@ function App() {
             </Stage>
           </div>
           <StatusBar>
-            {tempPoints.reduce((acc, val) => {
-              if (tempPoints.indexOf(val) %2 > 0 && tempPoints.indexOf(val) > 0) {
-                return acc + val.toFixed(0) + "], ["
-              } else {
-                return acc + val.toFixed(0) + " , "
-              }
-            }, "[")}
+            {temporaryPoints.map(pt => `[${pt.x.toFixed(0)}, ${pt.y.toFixed(0)}]`).join(" ")}
             {zoomPicker}
             </StatusBar>
         </section>
