@@ -10,12 +10,13 @@ export type Mode = (typeof Modes)[number];
 
 export const useMode = () => {
     const [mode, setMode] = useState<Mode>("measureRect");
-
     const isOneOf = (...modes: Mode[]) => modes.includes(mode);
+    const is = (value: Mode) => mode === value;
 
     return {
-        mode,
-        setMode,
-        isOneOf
+        value: mode,
+        set: setMode,
+        isOneOf,
+        is,
     }
 }

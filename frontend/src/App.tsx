@@ -42,7 +42,7 @@ const icons: Record<Mode, React.ReactNode> = {
 };
 
 function App() {
-  const { mode, setMode, isOneOf: isModeOneOf } = useMode();
+  const mode = useMode();
   const { temporaryPoints, cursorPoint, endMeasurement, cancelLastPoint, addPoint, setCursorPoint } = useMeasure();
   const [stuff] = useImage(Test);
   const [displayScale, setDisplayScale] = useState(0.75);
@@ -104,12 +104,12 @@ function App() {
   }, [])
 
   const handleRightClick = () => {
-    if (isModeOneOf("measurePoly", "measureLine", "measureRect", "setscale") && temporaryPoints.length === 1) {
+    if (mode.isOneOf("measurePoly", "measureLine", "measureRect", "setscale") && temporaryPoints.length === 1) {
       endMeasurement();
       return;
     }
 
-    switch (mode) {
+    switch (mode.value) {
       case "measurePoly":
         cancelLastPoint();
         break;
@@ -131,7 +131,7 @@ function App() {
       return;
     }
 
-    if (mode === "measureRect" && temporaryPoints.length === 1) {
+    if (mode.is("measureRect") && temporaryPoints.length === 1) {
       // Mirror first point and cursor point to make a rectangle
       const first = temporaryPoints[0];
       const second = point;
@@ -146,9 +146,9 @@ function App() {
 
       setMeasurements([...measurements, model]);
       endMeasurement();
-    } else if (isModeOneOf("setscale", "measureLine", "measurePoly")) {
+    } else if (mode.isOneOf("setscale", "measureLine", "measurePoly")) {
       const pt = new Point(point.x, point.y);
-      if (mode !== "setscale" && pt.isCloseTo(temporaryPoints[0])) {
+      if (mode.value !== "setscale" && pt.isCloseTo(temporaryPoints[0])) {
         const model = new PolygonalMeasurementViewmodel(
           new PolygonalMeasurement(temporaryPoints),
           `#${measurements.length + 1}`,
@@ -167,9 +167,9 @@ function App() {
     if (temporaryPoints.length === 0) {
       return;
     }
-    if (mode === "setscale" && temporaryPoints.length === 2) {
+    if (mode.is("setscale") && temporaryPoints.length === 2) {
       setShowScaleDialog(true);
-    } else if (mode === "measureLine" && temporaryPoints.length === 2) {
+    } else if (mode.is("measureLine") && temporaryPoints.length === 2) {
       setMeasurements([
         ...measurements,
         new LineMeasurementViewmodel(
@@ -223,7 +223,7 @@ function App() {
       points = points.concat(cursorPoint);
     }
     if (
-      mode === "measureRect" &&
+      mode.is("measureRect") &&
       points.length === 2 &&
       points.every((x) => x !== undefined)
     ) {
@@ -245,9 +245,9 @@ function App() {
 
           {Modes.map((md) => (
             <IconButton
-              className={mode === md ? styles.activeButton : undefined}
+              className={mode.is(md) ? styles.activeButton : undefined}
               icon={icons[md]}
-              action={() => setMode(md)}
+              action={() => mode.set(md)}
             />
           ))}
         </Sidebar>
