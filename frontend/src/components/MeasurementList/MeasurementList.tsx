@@ -6,7 +6,7 @@ import {
   PolygonalMeasurement,
 } from "../../models/measurement";
 import { Scale } from "../../models/models";
-import { MeasurementViewmodel, Style } from "../../models/viewmodels";
+import { MeasurementViewmodel, Style, Styles } from "../../models/viewmodels";
 import styles from "./MeasurementList.module.scss";
 
 interface Props {
@@ -47,7 +47,16 @@ const Measurement: FC<MeasurementProps> = ({ model, scale, onChange }) => {
       <p className={styles.name}>{model.name}</p>
       <div className={styles.data}>
         <p>{data}</p>
-        <p>{model.style}</p>
+        <select
+          value={model.style}
+          onChange={(s) => onChange(model.color, s.target.value as Style)}
+        >
+          {Styles.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
         <Popover>
           <Popover.Button className={styles.colorPickerBtn}>
             <div
