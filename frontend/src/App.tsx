@@ -146,9 +146,9 @@ function App() {
 
       setMeasurements([...measurements, model]);
       endMeasurement();
-    } else if (isModeOneOf("measureLine", "measurePoly")) {
+    } else if (isModeOneOf("setscale", "measureLine", "measurePoly")) {
       const pt = new Point(point.x, point.y);
-      if (pt.isCloseTo(temporaryPoints[0])) {
+      if (mode !== "setscale" && pt.isCloseTo(temporaryPoints[0])) {
         const model = new PolygonalMeasurementViewmodel(
           new PolygonalMeasurement(temporaryPoints),
           `#${measurements.length + 1}`,
