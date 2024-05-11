@@ -194,6 +194,10 @@ function App() {
     setMeasurements(updated);
   };
 
+  const handleDeleteMeasurement = (idx: number) => {
+    setMeasurements(measurements.filter(x => measurements.indexOf(x) !== idx))
+  }
+
   const scaleDialog = (
     <Dialog isOpen={showScaleDialog} onClose={() => setShowScaleDialog(false)}>
       <ScalePicker
@@ -260,6 +264,7 @@ function App() {
               list={measurements}
               scale={scale}
               onChange={handleViewmodelChanged}
+              onDelete={handleDeleteMeasurement}
             />
           </section>
         ) : null}
