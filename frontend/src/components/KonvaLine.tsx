@@ -29,19 +29,22 @@ export const KonvaLine: FC<Props> = ({
   const center = measurement?.center ?? scale.center;
   const points = measurement?.asPointsArray ?? scale.points;
   const drawScale = { x: displayScale, y: displayScale };
-  const styles: Record<Style, number[] | undefined> = {
-    solid: undefined,
-    dash: [20, 48],
-    dashdot: [20, 40, 2, 40],
-    dot: [0.5, 23],
+
+  const styles: Record<Style, number[]> = {
+    solid: [],
+    dash: [20, 24],
+    dashdot: [20, 12 * displayScale, 2, 12 * displayScale],
+    dot: [1, 10 * displayScale],
   };
+
+  const closed = (measurement?.points?.length ?? 0) > 2;
 
   return (
     <>
       <Line
         scale={drawScale}
         points={points}
-        closed
+        closed={closed}
         stroke={color}
         strokeWidth={5 * displayScale}
         lineCap="round"
