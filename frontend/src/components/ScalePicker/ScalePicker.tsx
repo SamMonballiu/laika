@@ -10,11 +10,13 @@ interface Props {
 
 export const ScalePicker: FC<Props> = ({ scale, onConfirm }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [distance, setDistance] = useState<number>(scale?.enteredDistance ?? 0);
+  const [distance, setDistance] = useState<string>(
+    scale?.enteredDistance.toString() ?? ""
+  );
   const [unit, setUnit] = useState<ScaleUnit>(scale?.unit ?? "None");
 
   const handleConfirm = () => {
-    onConfirm(distance, unit);
+    onConfirm(parseFloat(distance), unit);
   };
 
   useEffect(() => {
@@ -34,28 +36,20 @@ export const ScalePicker: FC<Props> = ({ scale, onConfirm }) => {
         <p>Distance</p>
         <input
           ref={inputRef}
-          type="number"
+          type="text"
           value={distance}
-          onChange={(e) => setDistance(parseFloat(e.target.value))}
+          onChange={(e) => setDistance(e.target.value)}
           autoFocus
         />
       </section>
       <section className={styles.line}>
         <p>Unit</p>
         <ScaleUnitPicker selected={unit} onSelect={setUnit} />
-        {/* <select
-          value={unit}
-          onChange={(e) => setUnit(e.target.value as ScaleUnit)}
-        >
-          {ScaleUnits.map((unit) => (
-            <option key={unit} value={unit}>
-              {unit}
-            </option>
-          ))}
-        </select> */}
       </section>
       <section className={styles.buttonRow}>
-        <button onClick={handleConfirm}>OK</button>
+        <button onClick={handleConfirm} disabled={isNaN(parseFloat(distance))}>
+          OK
+        </button>
       </section>
     </div>
   );
