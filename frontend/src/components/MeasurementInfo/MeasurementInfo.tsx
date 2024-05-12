@@ -9,6 +9,7 @@ interface Props {
   measurement?: Measurement;
   scale: Scale;
   fontSize: number;
+  onClick?: () => void;
 }
 
 export const MeasurementInfo: FC<Props> = ({
@@ -17,6 +18,7 @@ export const MeasurementInfo: FC<Props> = ({
   measurement,
   scale,
   fontSize,
+  onClick,
 }) => {
   const drawScale = { x: displayScale, y: displayScale };
   const description = measurement?.getDescription(scale) ?? scale.description;
@@ -56,7 +58,8 @@ export const MeasurementInfo: FC<Props> = ({
         strokeWidth={2 * displayScale}
         {...rectangle}
         rotation={rotation}
-        listening={false}
+        listening={true}
+        onClick={onClick}
       />
 
       <Text

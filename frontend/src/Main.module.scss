@@ -16,7 +16,7 @@
   height: 100vh;
   overflow: auto;
   border-right: 1px solid rgba(0, 0, 0, 0.125);
-  width: 40vw;
+  width: 20vw;
 }
 
 .stage {
@@ -26,6 +26,9 @@
   // display: none;
   overflow: scroll;
   background: #bbb;
+}
+
+.crosshair {
   cursor: crosshair;
 }
 

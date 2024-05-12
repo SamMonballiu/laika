@@ -13,6 +13,7 @@ interface Props {
   showDistance?: boolean;
   color?: string;
   style?: Style;
+  onClick?: () => void;
 }
 
 export const KonvaLine: FC<Props> = ({
@@ -23,6 +24,7 @@ export const KonvaLine: FC<Props> = ({
   showDistance = true,
   color = "black",
   style = "solid",
+  onClick,
 }) => {
   const center = measurement?.center ?? scale.center;
   const points = measurement?.asPointsArray ?? scale.points;
@@ -51,7 +53,8 @@ export const KonvaLine: FC<Props> = ({
         }}
         rotation={rotation}
         dash={styles[style]}
-        listening={false}
+        listening={measurement !== undefined}
+        onClick={onClick}
       />
 
       {showDistance ? (
@@ -61,6 +64,7 @@ export const KonvaLine: FC<Props> = ({
           rotation={rotation}
           fontSize={40}
           displayScale={displayScale}
+          onClick={onClick}
         />
       ) : null}
     </>

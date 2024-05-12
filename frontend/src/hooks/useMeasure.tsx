@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from "react";
 
 export const useMeasure = () => {
   const [temporaryPoints, setTemporaryPoints] = useState<Point[]>([
-    new Point(100, 100),
+    //new Point(100, 100),
     // new Point(300, 100),
     // new Point(300, 300),
   ]);

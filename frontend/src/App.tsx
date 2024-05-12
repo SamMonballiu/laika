@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Test from "./assets/test.jpg";
 // import "./App.css";
-import { Layer, Stage, Image, Line, Circle, Text, Rect } from "react-konva";
+import {
+  Layer,
+  Stage,
+  Image,
+  Line,
+  Circle,
+  Text,
+  Rect,
+  Shape,
+} from "react-konva";
 import useImage from "use-image";
 import styles from "./Main.module.scss";
-import {
-  LineMeasurement,
-  PolygonalMeasurement,
-} from "./models/measurement";
+import { LineMeasurement, PolygonalMeasurement } from "./models/measurement";
 import { Point, Points, Scale } from "./models/models";
 import { Dialog } from "./components/Dialog";
 import { ScalePicker } from "./components/ScalePicker/ScalePicker";
@@ -19,6 +25,7 @@ import {
   LuPenLine,
   LuList,
   LuRectangleHorizontal,
+  LuMousePointer2,
 } from "react-icons/lu";
 import { IconButton } from "./components/IconButton";
 import { ZoomPicker } from "./components/ZoomPicker/ZoomPicker";
@@ -33,8 +40,11 @@ import { MeasurementList } from "./components/MeasurementList/MeasurementList";
 import { LiaDrawPolygonSolid } from "react-icons/lia";
 import { Mode, Modes, useMode } from "./hooks/useMode";
 import { useMeasure } from "./hooks/useMeasure";
+import cx from "classnames";
+import { KonvaPoints } from "./components/KonvaPoints";
 
 const icons: Record<Mode, React.ReactNode> = {
+  select: <LuMousePointer2 />,
   setscale: <LuRuler />,
   measureLine: <LuPenLine />,
   measurePoly: <LiaDrawPolygonSolid />,
@@ -42,14 +52,27 @@ const icons: Record<Mode, React.ReactNode> = {
 };
 
 function App() {
-  const mode = useMode();
-  const { temporaryPoints, cursorPoint, endMeasurement, cancelLastPoint, addPoint, setCursorPoint, getLastPoint } = useMeasure();
+  const mode = useMode("select");
+  useEffect(() => {
+    if (mode.value !== "select") {
+      setSelected([]);
+    }
+  }, [mode.value]);
+  const {
+    temporaryPoints,
+    cursorPoint,
+    endMeasurement,
+    cancelLastPoint,
+    addPoint,
+    setCursorPoint,
+    getLastPoint,
+  } = useMeasure();
   const [stuff] = useImage(Test);
   const [displayScale, setDisplayScale] = useState(0.75);
   const [scale, setScale] = useState<Scale>(
     new Scale(new Point(417, 380), new Point(2291, 380), 12.192, "Meters")
   );
-  const [clicked, setClicked] = useState<Point[]>([]);
+  const [selected, setSelected] = useState<Point[]>([]);
   const [showScaleDialog, setShowScaleDialog] = useState(false);
   const [showList, setShowList] = useState(true);
   const temp: MeasurementViewmodel[] = [
@@ -71,10 +94,10 @@ function App() {
     useState<MeasurementViewmodel[]>(temp);
 
   const asPoints = React.useMemo(() => {
-    return clicked.reduce((acc, val) => {
+    return selected.reduce((acc, val) => {
       return [...acc, val.x, val.y];
     }, [] as number[]);
-  }, [clicked]);
+  }, [selected]);
 
   const scaled = (factor?: number) => displayScale * (factor ?? 0);
   const drawScale: { x: number; y: number } = {
@@ -96,15 +119,19 @@ function App() {
   useEffect(() => {
     const contextClickHandler = (event: Event) => {
       event.preventDefault();
-    }
+    };
 
     document.addEventListener("contextmenu", contextClickHandler);
 
-    return () => document.removeEventListener("contextmenu", contextClickHandler);
-  }, [])
+    return () =>
+      document.removeEventListener("contextmenu", contextClickHandler);
+  }, []);
 
   const handleRightClick = () => {
-    if (mode.isOneOf("measurePoly", "measureLine", "measureRect", "setscale") && temporaryPoints.length === 1) {
+    if (
+      mode.isOneOf("measurePoly", "measureLine", "measureRect", "setscale") &&
+      temporaryPoints.length === 1
+    ) {
       endMeasurement();
       return;
     }
@@ -114,11 +141,11 @@ function App() {
         cancelLastPoint();
         break;
     }
-  }
-
+  };
 
   const handleClicked = (point: Point) => {
-    if (!point) {
+    if (!point || mode.is("select")) {
+      setSelected([]);
       return;
     }
 
@@ -151,7 +178,10 @@ function App() {
 
       if (pt.isCloseTo(getLastPoint())) {
         return;
-      } else if (mode.value !== "setscale" && pt.isCloseTo(temporaryPoints[0])) {
+      } else if (
+        mode.value !== "setscale" &&
+        pt.isCloseTo(temporaryPoints[0])
+      ) {
         const model = new PolygonalMeasurementViewmodel(
           new PolygonalMeasurement(temporaryPoints),
           `#${measurements.length + 1}`,
@@ -195,8 +225,10 @@ function App() {
   };
 
   const handleDeleteMeasurement = (idx: number) => {
-    setMeasurements(measurements.filter(x => measurements.indexOf(x) !== idx))
-  }
+    setMeasurements(
+      measurements.filter((x) => measurements.indexOf(x) !== idx)
+    );
+  };
 
   const scaleDialog = (
     <Dialog isOpen={showScaleDialog} onClose={() => setShowScaleDialog(false)}>
@@ -269,7 +301,16 @@ function App() {
           </section>
         ) : null}
         <section className={styles.main}>
-          <div className={styles.stage}>
+          <div
+            className={cx(styles.stage, {
+              [styles.crosshair]: mode.isOneOf(
+                "measureLine",
+                "measurePoly",
+                "measureRect",
+                "setscale"
+              ),
+            })}
+          >
             <Stage
               onMouseMove={(evt) => {
                 if (temporaryPoints.length === 0) {
@@ -299,37 +340,37 @@ function App() {
                   onClick={(evt) => {
                     if (evt.evt.button === 2) {
                       handleRightClick();
-                    }
-
-                    else {
+                    } else {
                       handleClicked(
                         evt.target.getStage()?.getPointerPosition() as Point
-                      )
+                      );
                     }
-                  }
-                  }
+                  }}
                   image={stuff}
                   scale={drawScale}
                 />
-              </Layer>
-              <Layer>
+                {/* </Layer> */}
+                {/* <Layer> */}
                 {!scale.isDefault && (
                   <KonvaScale displayScale={displayScale} scale={scale} />
                 )}
 
-                {measurements.map((mst, idx) => {
-                  return (
-                    <KonvaLine
-                      displayScale={displayScale}
-                      measurement={mst.measurement}
-                      color={mst.color}
-                      style={mst.style}
-                      scale={scale}
-                      key={idx}
-                      rotation={0}
-                    />
-                  );
-                })}
+                {measurements.map((mst, idx) => (
+                  <KonvaLine
+                    displayScale={displayScale}
+                    measurement={mst.measurement}
+                    color={mst.color}
+                    style={mst.style}
+                    scale={scale}
+                    key={idx}
+                    rotation={0}
+                    onClick={() => {
+                      if (mode.is("select")) {
+                        setSelected(mst.measurement.points);
+                      }
+                    }}
+                  />
+                ))}
 
                 {/* <Rect
                   scale={drawScale}
@@ -354,19 +395,29 @@ function App() {
                   listening={false}
                 />
 
-                {/* SCALE */}
-                <Line
-                  scale={drawScale}
-                  x={0}
-                  y={0}
-                  points={asPoints}
-                  tension={0}
-                  closed
-                  stroke="magenta"
-                  strokeWidth={2 / displayScale}
-                  onClick={() => alert("that tickles")}
+                {/* Points of selected measurement */}
+                <KonvaPoints
+                  points={selected}
+                  drawScale={drawScale}
+                  displayScale={displayScale}
                 />
 
+                <Shape
+                  points={tempPoints}
+                  stroke="red"
+                  strokeWidth={3}
+                  fill="magenta"
+                  x={100}
+                  y={100}
+                />
+
+                <KonvaPoints
+                  points={temporaryPoints.concat(cursorPoint ?? Point.Empty)}
+                  displayScale={displayScale}
+                  drawScale={drawScale}
+                />
+
+                {/* 
                 {temporaryPoints
                   .concat(cursorPoint ?? Point.Empty)
                   .map((pt, idx) => {
@@ -382,14 +433,16 @@ function App() {
                         fill="magenta"
                       />
                     );
-                  })}
+                  })} */}
               </Layer>
             </Stage>
           </div>
           <StatusBar>
-            {temporaryPoints.map(pt => `[${pt.x.toFixed(0)}, ${pt.y.toFixed(0)}]`).join(" ")}
+            {temporaryPoints
+              .map((pt) => `[${pt.x.toFixed(0)}, ${pt.y.toFixed(0)}]`)
+              .join(" ")}
             {zoomPicker}
-            </StatusBar>
+          </StatusBar>
         </section>
       </div>
     </>
