@@ -42,6 +42,7 @@ import { Mode, Modes, useMode } from "./hooks/useMode";
 import { useMeasure } from "./hooks/useMeasure";
 import cx from "classnames";
 import { KonvaPoints } from "./components/KonvaPoints";
+import { useZoom } from "./hooks/useZoom";
 
 const icons: Record<Mode, React.ReactNode> = {
   select: <LuMousePointer2 />,
@@ -68,7 +69,8 @@ function App() {
     getLastPoint,
   } = useMeasure();
   const [stuff] = useImage(Test);
-  const [displayScale, setDisplayScale] = useState(1.25);
+  const zoom = useZoom();
+  //const [displayScale, setDisplayScale] = useState(zoom.value);
   const [scale, setScale] = useState<Scale>(
     new Scale(new Point(417, 380), new Point(2291, 380), 12.192, "Meters")
   );
@@ -105,10 +107,10 @@ function App() {
   const [measurements, setMeasurements] =
     useState<MeasurementViewmodel[]>(temp);
 
-  const scaled = (factor?: number) => displayScale * (factor ?? 0);
+  const scaled = (factor?: number) => zoom.value * (factor ?? 0);
   const drawScale: { x: number; y: number } = {
-    x: displayScale,
-    y: displayScale,
+    x: zoom.value,
+    y: zoom.value,
   };
 
   useEffect(() => {
@@ -144,8 +146,8 @@ function App() {
       return;
     }
 
-    point.x = point.x * (1 / displayScale);
-    point.y = point.y * (1 / displayScale);
+    point.x = point.x * (1 / zoom.value);
+    point.y = point.y * (1 / zoom.value);
 
     if (!cursorPoint) {
       setCursorPoint(point);
@@ -242,12 +244,14 @@ function App() {
   const zoomPicker = useMemo(
     () => (
       <ZoomPicker
-        value={displayScale}
-        options={[0.25, 0.5, 0.75, 1, 1.25, 1.5, 2]}
-        onSelect={(zoom) => setDisplayScale(zoom)}
+        value={zoom.value}
+        options={zoom.options}
+        onSelect={(val) => zoom.set(val)}
+        onIncrement={zoom.can.increment ? zoom.increment : undefined}
+        onDecrement={zoom.can.decrement ? zoom.decrement : undefined}
       />
     ),
-    [displayScale]
+    [zoom]
   );
 
   const tempPoints = React.useMemo(() => {
@@ -318,11 +322,11 @@ function App() {
                 const pos = evt.target.getStage()?.getPointerPosition();
                 if (pos) {
                   let cursorPoint = new Point(
-                    parseInt((pos.x * (1 / displayScale)).toString()),
-                    parseInt((pos.y * (1 / displayScale)).toString())
+                    parseInt((pos.x * (1 / zoom.value)).toString()),
+                    parseInt((pos.y * (1 / zoom.value)).toString())
                   ).align(
                     temporaryPoints[temporaryPoints.length - 1],
-                    20 * (1 / displayScale)
+                    20 * (1 / zoom.value)
                   );
 
                   if (cursorPoint.sharesAxisWith(temporaryPoints[0])) {
@@ -351,12 +355,12 @@ function App() {
                 {/* </Layer> */}
                 {/* <Layer> */}
                 {!scale.isDefault && (
-                  <KonvaScale displayScale={displayScale} scale={scale} />
+                  <KonvaScale displayScale={zoom.value} scale={scale} />
                 )}
 
                 {measurements.map((mst, idx) => (
                   <KonvaLine
-                    displayScale={displayScale}
+                    displayScale={zoom.value}
                     measurement={mst.measurement}
                     color={mst.color}
                     style={mst.style}
@@ -399,7 +403,7 @@ function App() {
                   <KonvaPoints
                     points={selected.measurement.points}
                     drawScale={drawScale}
-                    displayScale={displayScale}
+                    displayScale={zoom.value}
                     onDragMove={(idx, pos) => {
                       let point = new Point(pos.x, pos.y);
                       const currentMeasurement = { ...selected };
@@ -412,7 +416,7 @@ function App() {
                         const other = currentMeasurement.measurement.points[i];
 
                         if (point.sharesAxisWith(other)) {
-                          point = point.align(other, 8 / displayScale);
+                          point = point.align(other, 8 / zoom.value);
                         }
                       }
 
@@ -433,7 +437,7 @@ function App() {
 
                 <KonvaPoints
                   points={temporaryPoints.concat(cursorPoint ?? Point.Empty)}
-                  displayScale={displayScale}
+                  displayScale={zoom.value}
                   drawScale={drawScale}
                 />
 
