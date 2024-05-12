@@ -55,7 +55,7 @@ function App() {
   const mode = useMode("select");
   useEffect(() => {
     if (mode.value !== "select") {
-      setSelected([]);
+      setSelected(null);
     }
   }, [mode.value]);
   const {
@@ -68,11 +68,11 @@ function App() {
     getLastPoint,
   } = useMeasure();
   const [stuff] = useImage(Test);
-  const [displayScale, setDisplayScale] = useState(0.75);
+  const [displayScale, setDisplayScale] = useState(1.25);
   const [scale, setScale] = useState<Scale>(
     new Scale(new Point(417, 380), new Point(2291, 380), 12.192, "Meters")
   );
-  const [selected, setSelected] = useState<Point[]>([]);
+  const [selected, setSelected] = useState<MeasurementViewmodel | null>(null);
   const [showScaleDialog, setShowScaleDialog] = useState(false);
   const [showList, setShowList] = useState(true);
   const temp: MeasurementViewmodel[] = [
@@ -89,32 +89,27 @@ function App() {
       "cyan",
       "solid"
     ),
+
+    new PolygonalMeasurementViewmodel(
+      new PolygonalMeasurement([
+        new Point(600, 600),
+        new Point(800, 600),
+        new Point(800, 800),
+        new Point(600, 800),
+      ]),
+      "#3",
+      "pink",
+      "solid"
+    ),
   ];
   const [measurements, setMeasurements] =
     useState<MeasurementViewmodel[]>(temp);
-
-  const asPoints = React.useMemo(() => {
-    return selected.reduce((acc, val) => {
-      return [...acc, val.x, val.y];
-    }, [] as number[]);
-  }, [selected]);
 
   const scaled = (factor?: number) => displayScale * (factor ?? 0);
   const drawScale: { x: number; y: number } = {
     x: displayScale,
     y: displayScale,
   };
-
-  //const measurements: Measurement[] = [
-  //new LineMeasurement(new Point(200, 200), new Point(350, 500)),
-  // new PolygonalMeasurement([
-  //   new Point(50, 50),
-  //   new Point(160, 160),
-  //   new Point(50, 200),
-  //   new Point(0, 200),
-  //   // new Point(600, 500),
-  // ]),
-  //];
 
   useEffect(() => {
     const contextClickHandler = (event: Event) => {
@@ -145,7 +140,7 @@ function App() {
 
   const handleClicked = (point: Point) => {
     if (!point || mode.is("select")) {
-      setSelected([]);
+      setSelected(null);
       return;
     }
 
@@ -366,7 +361,7 @@ function App() {
                     rotation={0}
                     onClick={() => {
                       if (mode.is("select")) {
-                        setSelected(mst.measurement.points);
+                        setSelected(mst);
                       }
                     }}
                   />
@@ -396,11 +391,32 @@ function App() {
                 />
 
                 {/* Points of selected measurement */}
-                <KonvaPoints
-                  points={selected}
-                  drawScale={drawScale}
-                  displayScale={displayScale}
-                />
+                {selected ? (
+                  <KonvaPoints
+                    points={selected.measurement.points}
+                    drawScale={drawScale}
+                    displayScale={displayScale}
+                    onDragMove={(idx, pos) => {
+                      let point = new Point(pos.x, pos.y);
+                      const currentMeasurement = { ...selected };
+                      for (
+                        let i = 0;
+                        i < selected.measurement.points.length;
+                        i++
+                      ) {
+                        if (idx === i) continue;
+                        const other = currentMeasurement.measurement.points[i];
+
+                        if (point.sharesAxisWith(other)) {
+                          point = point.align(other, 8 / displayScale);
+                        }
+                      }
+
+                      currentMeasurement.measurement.points[idx] = point;
+                      setSelected(currentMeasurement);
+                    }}
+                  />
+                ) : null}
 
                 <Shape
                   points={tempPoints}
@@ -440,6 +456,11 @@ function App() {
           <StatusBar>
             {temporaryPoints
               .map((pt) => `[${pt.x.toFixed(0)}, ${pt.y.toFixed(0)}]`)
+              .join(" ")}
+            {selected?.measurement.points
+              .map(
+                (pt, idx) => `${idx} - [${pt.x.toFixed(0)}, ${pt.y.toFixed(0)}]`
+              )
               .join(" ")}
             {zoomPicker}
           </StatusBar>
