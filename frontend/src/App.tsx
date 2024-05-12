@@ -292,6 +292,10 @@ function App() {
               scale={scale}
               onChange={handleViewmodelChanged}
               onDelete={handleDeleteMeasurement}
+              selected={selected?.measurement.id}
+              onSelect={(id) =>
+                setSelected(measurements.find((x) => x.measurement.id === id)!)
+              }
             />
           </section>
         ) : null}

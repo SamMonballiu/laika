@@ -14,10 +14,15 @@ const calculatePolygonArea = (points: Point[]) => {
 
 export abstract class Measurement {
   public points: Point[];
+  
   public get asPointsArray() {
     return this.points.reduce((acc, pt) => {
       return acc.concat([pt.x, pt.y]);
     }, [] as number[]);
+  }
+
+  public get id() {
+    return this.asPointsArray.join("-")
   }
 
   constructor(points: Point[]) {

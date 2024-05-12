@@ -15,13 +15,16 @@
   transition: background-color 200ms ease;
 
   &:hover {
-    background: #eee;
     cursor: pointer;
 
     .removeIcon {
       opacity: .25;
     }
   }
+}
+
+.selected {
+  background: #eee;
 }
 
 .name {

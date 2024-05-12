@@ -10,12 +10,15 @@ import { MeasurementViewmodel, Style, Styles } from "../../models/viewmodels";
 import styles from "./MeasurementList.module.scss";
 import { MdClose } from "react-icons/md";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
+import cx from "classnames";
 
 interface Props {
   list: MeasurementViewmodel[];
   scale: Scale;
   onChange: (idx: number, color: string, style: Style) => void;
   onDelete: (idx: number) => void;
+  selected?: string;
+  onSelect: (id: string) => void;
 }
 
 export const MeasurementList: FC<Props> = ({
@@ -23,17 +26,19 @@ export const MeasurementList: FC<Props> = ({
   scale,
   onChange,
   onDelete,
+  selected,
+  onSelect,
 }) => {
   const [removeCandidate, setRemoveCandidate] = useState<number | null>(null);
   const confirmDelete = useConfirmDialog({
     isOpen: removeCandidate !== null,
-    message: `Remove ${list[removeCandidate ?? - 1]?.name}?`,
-    onConfirm: () => { 
+    message: `Remove ${list[removeCandidate ?? -1]?.name}?`,
+    onConfirm: () => {
       onDelete(removeCandidate!);
       setRemoveCandidate(null);
     },
-    onCancel: () => setRemoveCandidate(null)
-  })
+    onCancel: () => setRemoveCandidate(null),
+  });
 
   return (
     <div className={styles.container}>
@@ -45,6 +50,8 @@ export const MeasurementList: FC<Props> = ({
           scale={scale}
           onChange={(color, style) => onChange(idx, color, style)}
           onDelete={() => setRemoveCandidate(idx)}
+          isSelected={item.measurement.id === selected}
+          onSelect={() => onSelect(item.measurement.id)}
         />
       ))}
     </div>
@@ -56,12 +63,16 @@ interface MeasurementProps {
   scale: Scale;
   onChange: (color: string, style: Style) => void;
   onDelete: () => void;
+  isSelected: boolean;
+  onSelect: () => void;
 }
 const Measurement: FC<MeasurementProps> = ({
   model,
   scale,
   onChange,
   onDelete,
+  isSelected,
+  onSelect,
 }) => {
   const data =
     model.measurement instanceof LineMeasurement
@@ -70,7 +81,10 @@ const Measurement: FC<MeasurementProps> = ({
       ? model.measurement.getDescription(scale)
       : "";
   return (
-    <div className={styles.measurement}>
+    <div
+      className={cx(styles.measurement, { [styles.selected]: isSelected })}
+      onClick={onSelect}
+    >
       <p className={styles.name}>{model.name}</p>
       <div className={styles.data}>
         <p>{data}</p>
