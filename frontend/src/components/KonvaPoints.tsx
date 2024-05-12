@@ -8,6 +8,7 @@ interface Props {
   displayScale: number;
   color?: string;
   onDragMove?: (pointIndex: number, position: { x: number; y: number }) => void;
+  onDragEnd?: () => void;
 }
 
 export const KonvaPoints: FC<Props> = ({
@@ -16,6 +17,7 @@ export const KonvaPoints: FC<Props> = ({
   displayScale,
   color = "magenta",
   onDragMove,
+  onDragEnd,
 }) => {
   const [dragging, setDragging] = useState<number | null>(null);
   const isDraggable = onDragMove !== undefined;
@@ -38,6 +40,7 @@ export const KonvaPoints: FC<Props> = ({
               duration: 0.01,
             });
             setDragging(null);
+            onDragEnd?.();
           }}
           key={idx}
           scale={drawScale}

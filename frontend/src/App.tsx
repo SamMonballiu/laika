@@ -43,6 +43,7 @@ import { useMeasure } from "./hooks/useMeasure";
 import cx from "classnames";
 import { KonvaPoints } from "./components/KonvaPoints";
 import { useZoom } from "./hooks/useZoom";
+import { AlignmentGuide } from "./components/AlignmentGuide";
 
 const icons: Record<Mode, React.ReactNode> = {
   select: <LuMousePointer2 />,
@@ -68,6 +69,9 @@ function App() {
     setCursorPoint,
     getLastPoint,
   } = useMeasure();
+
+  const [dragPointIndex, setDragPointIndex] = useState<number | null>(null);
+
   const [stuff] = useImage(Test);
   const zoom = useZoom();
   //const [displayScale, setDisplayScale] = useState(zoom.value);
@@ -270,6 +274,39 @@ function App() {
     return Points.toNumberArray(points);
   }, [temporaryPoints, cursorPoint]);
 
+  const alignGuides = useMemo(() => {
+    let result: number[][] = [];
+    if (dragPointIndex === null || !selected) {
+      return result;
+    }
+
+    const dragPoint = selected.measurement.points[dragPointIndex];
+
+    return selected.measurement.points.reduce((acc, val) => {
+      if (selected.measurement.points.indexOf(val) === dragPointIndex) {
+        return acc;
+      }
+
+      if (val.sharesAxisWith(dragPoint, 1)) {
+        result.push([val.x, val.y, dragPoint.x, dragPoint.y]);
+      }
+
+      return result;
+    }, result);
+
+    // for (let i = 0; i < selected.measurement.points.length; i++) {
+    //   if (i === dragPointIndex) continue;
+
+    //   const otherPoint = selected.measurement.points[i];
+
+    //   if (otherPoint.sharesAxisWith(dragPoint, 1)) {
+    //     result.push([otherPoint.x, otherPoint.y, dragPoint.x, dragPoint.y]);
+    //   }
+    // }
+
+    return result;
+  }, [temporaryPoints, cursorPoint, dragPointIndex, selected]);
+
   return (
     <>
       {scaleDialog}
@@ -405,6 +442,7 @@ function App() {
                     drawScale={drawScale}
                     displayScale={zoom.value}
                     onDragMove={(idx, pos) => {
+                      setDragPointIndex(idx);
                       let point = new Point(pos.x, pos.y);
                       const currentMeasurement = { ...selected };
                       for (
@@ -423,6 +461,7 @@ function App() {
                       currentMeasurement.measurement.points[idx] = point;
                       setSelected(currentMeasurement);
                     }}
+                    onDragEnd={() => setDragPointIndex(null)}
                   />
                 ) : null}
 
@@ -440,6 +479,10 @@ function App() {
                   displayScale={zoom.value}
                   drawScale={drawScale}
                 />
+
+                {alignGuides.map((ag, idx) => (
+                  <AlignmentGuide key={idx} scale={drawScale} points={ag} />
+                ))}
 
                 {/* 
                 {temporaryPoints
@@ -462,13 +505,9 @@ function App() {
             </Stage>
           </div>
           <StatusBar>
-            {temporaryPoints
-              .map((pt) => `[${pt.x.toFixed(0)}, ${pt.y.toFixed(0)}]`)
-              .join(" ")}
+            {temporaryPoints.map((pt) => pt.asString()).join(" ")}
             {selected?.measurement.points
-              .map(
-                (pt, idx) => `${idx} - [${pt.x.toFixed(0)}, ${pt.y.toFixed(0)}]`
-              )
+              .map((pt, idx) => `${idx} - ${pt.asString()}`)
               .join(" ")}
             {zoomPicker}
           </StatusBar>

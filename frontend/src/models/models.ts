@@ -36,8 +36,7 @@ export class Point {
     return this;
   }
 
-  public sharesAxisWith(other: Point): boolean {
-    const tolerance = 20;
+  public sharesAxisWith(other: Point, tolerance: number = 20): boolean {
     const result =
       Math.abs(this.x - other.x) < tolerance ||
       Math.abs(this.y - other.y) < tolerance;
