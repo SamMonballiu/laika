@@ -14,7 +14,10 @@ export const App: FC = () => {
     return <PdfPagePicker onSelectPage={() => setMode("work")} />;
   } else if (mode === "work") {
     return (
-      <Workspace url={pages[selectedPage]} onPicker={() => setMode("open")} />
+      <Workspace
+        pageContent={pages[selectedPage].content}
+        onPicker={() => setMode("open")}
+      />
     );
   }
 

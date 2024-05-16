@@ -1,8 +1,8 @@
-import { FC } from "react";
-import { SelectFile } from "../wailsjs/go/main/App";
+import { FC, useState, useEffect } from "react";
+import { SelectFile, GetPageCount, GetPdfPage } from "../wailsjs/go/main/App";
 import styles from "./PdfPagePicker.module.scss";
 import { useOpenedPdfContext } from "./context/OpenedPdfContext";
-import { FaRegFilePdf, FaRegFileLines } from "react-icons/fa6";
+import { FaRegFilePdf, FaRegFileLines, FaRegFileImage } from "react-icons/fa6";
 import cx from "classnames";
 
 interface Props {
@@ -10,30 +10,26 @@ interface Props {
 }
 
 export const PdfPagePicker: FC<Props> = ({ onSelectPage }) => {
-  const { pages, setPages, selectedPage, setSelectedPage } =
+  const { pages, setPage, selectedPage, setSelectedPage, path, setPath } =
     useOpenedPdfContext();
+
+  const [numPages, setNumPages] = useState(0);
 
   return (
     <div className={styles.container}>
-      <p>
-        {pages.length} -- {selectedPage}
-      </p>
-
-      {pages.length === 0 ? (
+      {numPages === 0 ? (
         <div className={styles.buttons}>
           <Button
             icon={<FaRegFilePdf />}
             name="Open a PDF"
-            onClick={() => {
-              SelectFile().then((data) => {
-                let result: string[] = [];
+            onClick={async () => {
+              const filePath = await SelectFile();
+              setPath(filePath);
 
-                for (const key of Object.keys(data)) {
-                  result.push(data[key]);
-                }
-
-                setPages(result);
-              });
+              const pdfPages = await GetPageCount(filePath);
+              console.log(pdfPages);
+              setNumPages(pdfPages);
+              console.log([...Array(pdfPages)]);
             }}
           />
 
@@ -41,20 +37,11 @@ export const PdfPagePicker: FC<Props> = ({ onSelectPage }) => {
         </div>
       ) : null}
 
-      {pages.length > 0 && (
+      {numPages > 0 && (
         <div className={styles.previews}>
-          {pages.map((x, idx) => {
-            return (
-              <img
-                key={idx}
-                src={`data:image/jpg;base64,${x}`}
-                onClick={() => {
-                  setSelectedPage(idx);
-                  onSelectPage();
-                }}
-              />
-            );
-          })}
+          {[...Array(numPages).keys()].map((x) => (
+            <PagePreview pageNumber={x} key={x} onSelect={onSelectPage} />
+          ))}
         </div>
       )}
     </div>
@@ -74,6 +61,48 @@ const Button: FC<ButtonProps> = ({ icon, name, onClick }) => {
     >
       {icon}
       <p>{name}</p>
+    </div>
+  );
+};
+
+interface PreviewProps {
+  pageNumber: number;
+  onSelect: () => void;
+}
+
+const PagePreview: FC<PreviewProps> = ({ pageNumber, onSelect }) => {
+  const [base64, setBase64] = useState("");
+  const { path, setPage, setSelectedPage } = useOpenedPdfContext();
+
+  useEffect(() => {
+    GetPdfPage(path, pageNumber).then((data: string) => {
+      setBase64(data);
+      setPage(pageNumber, data);
+    });
+  }, []);
+
+  if (base64 === "") {
+    return (
+      <div className={styles.preview}>
+        <div className={styles.previewImage}>
+          <FaRegFileImage />
+        </div>
+        <p>{pageNumber + 1}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.preview}>
+      <img
+        className={styles.previewImage}
+        src={`data:image/jpg;base64,${base64}`}
+        onClick={() => {
+          setSelectedPage(pageNumber);
+          onSelect();
+        }}
+      />
+      <p>{pageNumber + 1}</p>
     </div>
   );
 };

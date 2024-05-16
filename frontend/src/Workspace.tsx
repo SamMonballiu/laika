@@ -1,16 +1,6 @@
 import React, { useState, useEffect, useMemo, FC } from "react";
-import Test from "./assets/test.jpg";
 // import "./App.css";
-import {
-  Layer,
-  Stage,
-  Image as KonvaImage,
-  Line,
-  Circle,
-  Text,
-  Rect,
-  Shape,
-} from "react-konva";
+import { Layer, Stage, Image as KonvaImage, Line, Shape } from "react-konva";
 import useImage from "use-image";
 import styles from "./Main.module.scss";
 import { LineMeasurement, PolygonalMeasurement } from "./models/measurement";
@@ -54,11 +44,11 @@ const icons: Record<Mode, React.ReactNode> = {
 };
 
 interface Props {
-  url: string;
+  pageContent: string;
   onPicker: () => void;
 }
 
-const Workspace: FC<Props> = ({ url, onPicker }) => {
+const Workspace: FC<Props> = ({ pageContent, onPicker }) => {
   const mode = useMode("select");
 
   useEffect(() => {
@@ -78,11 +68,8 @@ const Workspace: FC<Props> = ({ url, onPicker }) => {
 
   const [dragPointIndex, setDragPointIndex] = useState<number | null>(null);
 
-  // const img = new Image();
-  // img.src = url;
-  const [stuff] = useImage(`data:image/jpg;base64,${url}`);
+  const [stuff] = useImage(`data:image/jpg;base64,${pageContent}`);
   const zoom = useZoom();
-  //const [displayScale, setDisplayScale] = useState(zoom.value);
   const [scale, setScale] = useState<Scale>(
     new Scale(new Point(417, 380), new Point(2291, 380), 12.192, "Meters")
   );

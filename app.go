@@ -28,7 +28,15 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 
-func (a *App) SelectFile() map[string]string {
+func (a *App) GetPageCount(path string) int {
+	return GetPdfPages(path)
+}
+
+func (a *App) GetPdfPage(path string, pageNumber int) string {
+	return GetPdfPage(path, pageNumber)
+}
+
+func (a *App) SelectFile() string { // map[string]string {
 	options := runtime.OpenDialogOptions{
 		Filters: []runtime.FileFilter{
 			{DisplayName: "PDF files (*.pdf)", Pattern: "*.pdf"},
@@ -43,11 +51,10 @@ func (a *App) SelectFile() map[string]string {
 		fmt.Println("OK")
 	}
 
-	if filePath == "" {
-		return nil
-	}
+	return filePath
 
-	return GetPdf(filePath)
+	// return result
+	// return GetPdf(filePath)
 	//GetPdf()
 	//return result
 
