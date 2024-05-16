@@ -10,6 +10,10 @@ export function GetPdfPage(arg1, arg2) {
   return window['go']['main']['App']['GetPdfPage'](arg1, arg2);
 }
 
+export function GetPdfThumbnails(arg1) {
+  return window['go']['main']['App']['GetPdfThumbnails'](arg1);
+}
+
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }

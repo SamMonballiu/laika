@@ -293,7 +293,12 @@ const Workspace: FC<Props> = ({ pageContent, onPicker }) => {
   return (
     <>
       {scaleDialog}
-      {/* <button onClick={onPicker}>Back</button> */}
+      <button
+        onClick={onPicker}
+        style={{ position: "absolute", bottom: 12, left: 12 }}
+      >
+        Back
+      </button>
       <div className={styles.container}>
         <Sidebar>
           <IconButton

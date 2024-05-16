@@ -1,14 +1,21 @@
 .container {
-  width: 94vw;
+  width: 99vw;
+  height: 99vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 .previews {
   display: flex;
   align-items: flex-start;
+  justify-content: flex-start;
+
   flex-wrap: wrap;
   gap: 12px;
   width: 100vw;
-  height: 90vh;
+  max-height: 90vh;
   overflow-x: auto;
   overflow-y: scroll;
   padding: 20px 24px;
@@ -60,6 +67,10 @@
 
   img {
     opacity: 0.75;
+
+    &:hover {
+      opacity: 1;
+    }
     height: 400px;
   }
 }
@@ -68,8 +79,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 99vh;
   gap: 24px;
-  height: 80vh;
 }
 
 .button {

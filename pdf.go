@@ -2,52 +2,39 @@
 package main
 
 import (
-	"bytes"
 	"encoding/base64"
 	"fmt"
-	"image/jpeg"
 
 	"github.com/karmdip-mi/go-fitz"
 )
 
-func GetPdfPages(filePath string) int {
+func GetPdfPages(filePath string) (pageCount int, err error) {
 	doc, err := fitz.New(filePath)
 
 	if err != nil {
-		panic(err)
+		return -1, err
 	}
 
-	return doc.NumPage()
+	return doc.NumPage(), nil
 }
 
 // return base64 image
-func GetPdfPage(filePath string, pageNumber int) string {
+func GetPdfPage(filePath string, pageNumber int) (content string, err error) {
 	doc, err := fitz.New(filePath)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	img, err := doc.Image(pageNumber)
+	img, err := doc.ImagePNG(pageNumber, 300)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-
-	var buf []byte
-	buffer := bytes.NewBuffer(buf)
-	//err = jpeg.Encode(buffer, img, &jpeg.Options{Quality: jpeg.DefaultQuality})
-	err = jpeg.Encode(buffer, img, &jpeg.Options{Quality: 10})
-	if err != nil {
-		panic(err)
-	}
-
-	imageBase64 := base64.StdEncoding.EncodeToString(buffer.Bytes())
 
 	doc.Close()
-
-	return imageBase64
+	return base64.StdEncoding.EncodeToString(img), nil
 }
 
-func GetPdf(filePath string) map[string]string {
+func GeneratePdfThumbnails(filePath string) map[string]string {
 	imageBase64Map := make(map[string]string)
 
 	doc, err := fitz.New(filePath)
@@ -57,23 +44,16 @@ func GetPdf(filePath string) map[string]string {
 
 	// Extract pages as images
 	for n := 0; n < doc.NumPage(); n++ {
-		img, err := doc.Image(n)
+		img, err := doc.ImagePNG(n, 20)
 		if err != nil {
 			panic(err)
 		}
 
-		// Encode image as base64
-		var buf []byte
-		buffer := bytes.NewBuffer(buf)
-		err = jpeg.Encode(buffer, img, &jpeg.Options{Quality: jpeg.DefaultQuality})
-		if err != nil {
-			panic(err)
-		}
-		imageBase64 := base64.StdEncoding.EncodeToString(buffer.Bytes())
-
-		// Store base64 string
+		imageBase64 := base64.StdEncoding.EncodeToString(img)
 		imageBase64Map[fmt.Sprintf("%03d", n)] = imageBase64
 	}
+
+	doc.Close()
 
 	return imageBase64Map
 }

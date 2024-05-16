@@ -8,10 +8,15 @@ interface Page {
 interface OpenedPdfContextProps {
   path: string;
   setPath: (value: string) => void;
+  thumbnails: string[];
+  setThumbnails: (value: string[]) => void;
   pages: Page[];
   setPage: (page: number, content: string) => void;
+  clearPages: () => void;
   selectedPage: number;
   setSelectedPage: (value: number) => void;
+  isPageCached: (page: number) => boolean;
+  getPage: (page: number) => Page | undefined;
 }
 
 export const OpenedPdfContext = createContext<OpenedPdfContextProps>(
@@ -23,6 +28,7 @@ export const useOpenedPdfContext = () => useContext(OpenedPdfContext);
 //@ts-expect-error
 export const OpenedFileProvider = ({ children }) => {
   const [path, setPath] = useState<string>("");
+  const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [pages, setPages] = useState<Page[]>([]);
   const [selectedPage, setSelectedPage] = useState<number>(0);
 
@@ -31,13 +37,26 @@ export const OpenedFileProvider = ({ children }) => {
     setPages([...newPages, { index: page, content }]);
   };
 
+  const getPage = (page: number) => pages.find((x) => x.index === page);
+
+  const hasPage = (page: number) => {
+    return getPage(page) !== undefined;
+  };
+
+  const clearPages = () => setPages([]);
+
   const context: OpenedPdfContextProps = {
     path,
     setPath,
+    thumbnails,
+    setThumbnails,
     pages,
     setPage: handleSetPage,
     selectedPage,
     setSelectedPage,
+    isPageCached: hasPage,
+    getPage,
+    clearPages,
   };
 
   return (

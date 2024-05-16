@@ -29,11 +29,25 @@ func (a *App) Greet(name string) string {
 }
 
 func (a *App) GetPageCount(path string) int {
-	return GetPdfPages(path)
+	pageCount, err := GetPdfPages(path)
+	if err != nil {
+		return -1
+	}
+
+	return pageCount
 }
 
 func (a *App) GetPdfPage(path string, pageNumber int) string {
-	return GetPdfPage(path, pageNumber)
+	pageData, err := GetPdfPage(path, pageNumber)
+	if err != nil {
+		return ""
+	}
+
+	return pageData
+}
+
+func (a *App) GetPdfThumbnails(path string) map[string]string {
+	return GeneratePdfThumbnails(path)
 }
 
 func (a *App) SelectFile() string { // map[string]string {

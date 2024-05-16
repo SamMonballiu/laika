@@ -1,5 +1,9 @@
 import { FC, useState, useEffect } from "react";
-import { SelectFile, GetPageCount, GetPdfPage } from "../wailsjs/go/main/App";
+import {
+  SelectFile,
+  GetPageCount,
+  GetPdfThumbnails,
+} from "../wailsjs/go/main/App";
 import styles from "./PdfPagePicker.module.scss";
 import { useOpenedPdfContext } from "./context/OpenedPdfContext";
 import { FaRegFilePdf, FaRegFileLines, FaRegFileImage } from "react-icons/fa6";
@@ -10,8 +14,7 @@ interface Props {
 }
 
 export const PdfPagePicker: FC<Props> = ({ onSelectPage }) => {
-  const { pages, setPage, selectedPage, setSelectedPage, path, setPath } =
-    useOpenedPdfContext();
+  const { setThumbnails, clearPages, setPath } = useOpenedPdfContext();
 
   const [numPages, setNumPages] = useState(0);
 
@@ -24,12 +27,31 @@ export const PdfPagePicker: FC<Props> = ({ onSelectPage }) => {
             name="Open a PDF"
             onClick={async () => {
               const filePath = await SelectFile();
-              setPath(filePath);
 
-              const pdfPages = await GetPageCount(filePath);
-              console.log(pdfPages);
-              setNumPages(pdfPages);
-              console.log([...Array(pdfPages)]);
+              // user cancelled the dialog
+              if (filePath === "") {
+                return;
+              }
+
+              setPath(filePath);
+              clearPages();
+
+              const pageCount = await GetPageCount(filePath);
+
+              const fetchedThumbnails = await GetPdfThumbnails(filePath);
+              let thumbsArr = Object.keys(fetchedThumbnails).reduce(
+                (acc, val) => {
+                  return acc.concat(fetchedThumbnails[val]);
+                },
+                [] as string[]
+              );
+              setNumPages(pageCount);
+              setThumbnails(thumbsArr);
+
+              if (pageCount === 1) {
+                onSelectPage();
+                return;
+              }
             }}
           />
 
@@ -72,13 +94,10 @@ interface PreviewProps {
 
 const PagePreview: FC<PreviewProps> = ({ pageNumber, onSelect }) => {
   const [base64, setBase64] = useState("");
-  const { path, setPage, setSelectedPage } = useOpenedPdfContext();
+  const { setSelectedPage, thumbnails } = useOpenedPdfContext();
 
   useEffect(() => {
-    GetPdfPage(path, pageNumber).then((data: string) => {
-      setBase64(data);
-      setPage(pageNumber, data);
-    });
+    setBase64(thumbnails[pageNumber]);
   }, []);
 
   if (base64 === "") {
@@ -96,8 +115,9 @@ const PagePreview: FC<PreviewProps> = ({ pageNumber, onSelect }) => {
     <div className={styles.preview}>
       <img
         className={styles.previewImage}
-        src={`data:image/jpg;base64,${base64}`}
+        src={`data:image/png;base64,${base64}`}
         onClick={() => {
+          console.log("Selecting page ", pageNumber);
           setSelectedPage(pageNumber);
           onSelect();
         }}

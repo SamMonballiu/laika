@@ -5,6 +5,8 @@ export function GetPageCount(arg1:string):Promise<number>;
 
 export function GetPdfPage(arg1:string,arg2:number):Promise<string>;
 
+export function GetPdfThumbnails(arg1:string):Promise<{[key: string]: string}>;
+
 export function Greet(arg1:string):Promise<string>;
 
 export function SelectFile():Promise<string>;

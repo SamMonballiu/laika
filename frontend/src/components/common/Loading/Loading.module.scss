@@ -1,0 +1,27 @@
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.animated {
+  animation-name: fade;
+  animation-direction: alternate;
+  animation-duration: 1000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+.icon {
+  font-size: 64px;
+  opacity: 0.25;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0.125;
+  }
+  to {
+    opacity: 0.75;
+  }
+}
