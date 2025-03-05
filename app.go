@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
@@ -24,4 +26,52 @@ func (a *App) startup(ctx context.Context) {
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
+}
+
+func (a *App) GetPageCount(path string) int {
+	pageCount, err := GetPdfPages(path)
+	if err != nil {
+		return -1
+	}
+
+	return pageCount
+}
+
+func (a *App) GetPdfPage(path string, pageNumber int) string {
+	pageData, err := GetPdfPage(path, pageNumber)
+	if err != nil {
+		return ""
+	}
+
+	return pageData
+}
+
+func (a *App) GetPdfThumbnails(path string) map[string]string {
+	return GeneratePdfThumbnails(path)
+}
+
+func (a *App) SelectFile() string { // map[string]string {
+	options := runtime.OpenDialogOptions{
+		Filters: []runtime.FileFilter{
+			{DisplayName: "PDF files (*.pdf)", Pattern: "*.pdf"},
+		},
+	}
+	filePath, err := runtime.OpenFileDialog(a.ctx, options)
+	fmt.Println(filePath)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println("OK")
+	}
+
+	return filePath
+
+	// return result
+	// return GetPdf(filePath)
+	//GetPdf()
+	//return result
+
+	// converted, _ := ConvertPDFToJPEG(result)
+	// return converted
 }

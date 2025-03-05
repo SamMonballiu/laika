@@ -1,60 +1,59 @@
 // https://github.com/Mindinventory/Golang-PDF-to-Image-Converter/
 package main
 
-// "fmt"
-// "image/jpeg"
-// "os"
-// "path"
-// "path/filepath"
-// "strings"
+import (
+	"encoding/base64"
+	"fmt"
 
-// "github.com/karmdip-mi/go-fitz"
+	"github.com/karmdip-mi/go-fitz"
+)
 
-func GetPdf() bool {
+func GetPdfPages(filePath string) (pageCount int, err error) {
+	doc, err := fitz.New(filePath)
 
-	return false
-	// var files []string
+	if err != nil {
+		return -1, err
+	}
 
-	// root := "pdf/"
-	// err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-	// 	if filepath.Ext(path) == ".pdf" {
-	// 		files = append(files, path)
-	// 	}
-	// 	return nil
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// for _, file := range files {
-	// 	doc, err := fitz.New(file)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	folder := strings.TrimSuffix(path.Base(file), filepath.Ext(path.Base(file)))
+	return doc.NumPage(), nil
+}
 
-	// 	// Extract pages as images
-	// 	for n := 0; n < doc.NumPage(); n++ {
-	// 		img, err := doc.Image(n)
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
-	// 		err = os.MkdirAll("img/"+folder, 0755)
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
+// return base64 image
+func GetPdfPage(filePath string, pageNumber int) (content string, err error) {
+	doc, err := fitz.New(filePath)
+	if err != nil {
+		return "", err
+	}
 
-	// 		f, err := os.Create(filepath.Join("img/"+folder+"/", fmt.Sprintf("image-%05d.jpg", n)))
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
+	img, err := doc.ImagePNG(pageNumber, 300)
+	if err != nil {
+		return "", err
+	}
 
-	// 		err = jpeg.Encode(f, img, &jpeg.Options{Quality: jpeg.DefaultQuality})
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
+	doc.Close()
+	return base64.StdEncoding.EncodeToString(img), nil
+}
 
-	// 		f.Close()
+func GeneratePdfThumbnails(filePath string) map[string]string {
+	imageBase64Map := make(map[string]string)
 
-	// 	}
-	// }
+	doc, err := fitz.New(filePath)
+	if err != nil {
+		panic(err)
+	}
+
+	// Extract pages as images
+	for n := 0; n < doc.NumPage(); n++ {
+		img, err := doc.ImagePNG(n, 20)
+		if err != nil {
+			panic(err)
+		}
+
+		imageBase64 := base64.StdEncoding.EncodeToString(img)
+		imageBase64Map[fmt.Sprintf("%03d", n)] = imageBase64
+	}
+
+	doc.Close()
+
+	return imageBase64Map
 }
