@@ -34,6 +34,7 @@ import cx from "classnames";
 import { KonvaPoints } from "./components/KonvaPoints";
 import { useZoom } from "./hooks/useZoom";
 import { AlignmentGuide } from "./components/AlignmentGuide";
+import { MeasurementInfo } from "./components/MeasurementInfo/MeasurementInfo";
 
 const icons: Record<Mode, React.ReactNode> = {
   select: <LuMousePointer2 />,
@@ -65,6 +66,26 @@ const Workspace: FC<Props> = ({ pageContent, onPicker }) => {
     setCursorPoint,
     getLastPoint,
   } = useMeasure();
+
+  const temporaryMeasurement = React.useMemo(() => {
+    if (!cursorPoint) {
+      return undefined;
+    }
+    switch (mode.value) {
+      case "measureLine":
+        return new LineMeasurement(temporaryPoints[0], cursorPoint);
+      case "measureRect":
+        return new PolygonalMeasurement(
+          Points.mirror(temporaryPoints[0], cursorPoint)
+        );
+      case "measurePoly":
+        return temporaryPoints.length > 1
+          ? new PolygonalMeasurement([...temporaryPoints, cursorPoint])
+          : undefined;
+      default:
+        return undefined;
+    }
+  }, [mode, temporaryPoints, cursorPoint]);
 
   const [dragPointIndex, setDragPointIndex] = useState<number | null>(null);
 
@@ -472,6 +493,15 @@ const Workspace: FC<Props> = ({ pageContent, onPicker }) => {
                 {alignGuides.map((ag, idx) => (
                   <AlignmentGuide key={idx} scale={drawScale} points={ag} />
                 ))}
+
+                {temporaryMeasurement && !scale.isDefault && (
+                  <MeasurementInfo
+                    displayScale={zoom.value}
+                    scale={scale}
+                    measurement={temporaryMeasurement}
+                    fontSize={40}
+                  />
+                )}
 
                 {/*
                 {temporaryPoints
