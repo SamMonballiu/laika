@@ -145,8 +145,8 @@ const Workspace: FC<Props> = ({ pageContent, onPicker }) => {
       return;
     }
 
-    point.x = point.x * (1 / zoom.value);
-    point.y = point.y * (1 / zoom.value);
+    point.x = parseInt((point.x * (1 / zoom.value)).toFixed(0));
+    point.y = parseInt((point.y * (1 / zoom.value)).toFixed(0));
 
     if (!cursorPoint) {
       setCursorPoint(point);
