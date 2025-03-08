@@ -9,7 +9,7 @@ export const useMeasure = () => {
   ]);
 
   const [cursorPoint, setCursorPoint] = useState<Point | undefined>(undefined);
-  
+
   useEffect(() => {
     if (temporaryPoints.length === 0) {
       setCursorPoint(undefined);
@@ -19,18 +19,18 @@ export const useMeasure = () => {
   const endMeasurement = () => {
     setTemporaryPoints([]);
     setCursorPoint(undefined);
-  }
+  };
 
   const cancelLastPoint = () => {
     temporaryPoints.pop();
     setTemporaryPoints([...temporaryPoints]);
-  }
+  };
 
   const getLastPoint = () => [...temporaryPoints].pop();
-  
+
   const addPoint = (point: Point) => {
     setTemporaryPoints([...temporaryPoints, point]);
-  }
+  };
 
   return {
     cursorPoint,
@@ -40,5 +40,5 @@ export const useMeasure = () => {
     getLastPoint,
     addPoint,
     setCursorPoint,
-  }
+  };
 };
