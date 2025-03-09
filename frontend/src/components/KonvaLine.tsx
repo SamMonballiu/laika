@@ -6,6 +6,7 @@ import { Style } from "../models/viewmodels";
 import { MeasurementInfo } from "./MeasurementInfo/MeasurementInfo";
 
 interface Props {
+  strokeWidth?: number;
   scale: Scale;
   measurement?: Measurement;
   displayScale: number;
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export const KonvaLine: FC<Props> = ({
+  strokeWidth = 1,
   displayScale,
   scale,
   measurement,
@@ -30,11 +32,13 @@ export const KonvaLine: FC<Props> = ({
   const points = measurement?.asPointsArray ?? scale.points;
   const drawScale = { x: displayScale, y: displayScale };
 
+  const styleMultiplier = displayScale * strokeWidth;
+
   const styles: Record<Style, number[]> = {
     solid: [],
-    dash: [20, 24],
-    dashdot: [20, 12 * displayScale, 2, 12 * displayScale],
-    dot: [1, 10 * displayScale],
+    dash: [20, 14],
+    dashdot: [20, 12, 2, 12],
+    dot: [1, 10],
   };
 
   const closed = (measurement?.points?.length ?? 0) > 2;
@@ -46,7 +50,7 @@ export const KonvaLine: FC<Props> = ({
         points={points}
         closed={closed}
         stroke={color}
-        strokeWidth={5 * displayScale}
+        strokeWidth={strokeWidth * 5 * displayScale}
         lineCap="round"
         x={center.x * displayScale}
         y={center.y * displayScale}
@@ -55,7 +59,7 @@ export const KonvaLine: FC<Props> = ({
           y: center.y,
         }}
         rotation={rotation}
-        dash={styles[style]}
+        dash={styles[style].map((x) => x * styleMultiplier)}
         listening={measurement !== undefined}
         onClick={onClick}
       />

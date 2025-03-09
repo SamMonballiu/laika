@@ -22,6 +22,7 @@ import { ZoomPicker } from "./components/ZoomPicker/ZoomPicker";
 import { KonvaLine } from "./components/KonvaLine";
 import {
   LineMeasurementViewmodel,
+  LineWidth,
   MeasurementViewmodel,
   PolygonalMeasurementViewmodel,
   Style,
@@ -212,10 +213,16 @@ const Workspace: FC<Props> = ({ pageContent, onPicker }) => {
     }
   }, [temporaryPoints]);
 
-  const handleViewmodelChanged = (idx: number, color: string, style: Style) => {
+  const handleViewmodelChanged = (
+    idx: number,
+    color: string,
+    style: Style,
+    width: LineWidth
+  ) => {
     const updated = [...measurements];
     updated[idx].color = color;
     updated[idx].style = style;
+    updated[idx].stroke = width;
 
     setMeasurements(updated);
   };
@@ -387,6 +394,7 @@ const Workspace: FC<Props> = ({ pageContent, onPicker }) => {
                 {measurements.map((mst, idx) => (
                   <KonvaLine
                     displayScale={zoom.value}
+                    strokeWidth={mst.stroke}
                     measurement={mst.measurement}
                     color={mst.color}
                     style={mst.style}

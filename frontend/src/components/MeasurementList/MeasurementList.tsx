@@ -6,7 +6,12 @@ import {
   PolygonalMeasurement,
 } from "../../models/measurement";
 import { Scale } from "../../models/models";
-import { MeasurementViewmodel, Style, Styles } from "../../models/viewmodels";
+import {
+  LineWidth,
+  MeasurementViewmodel,
+  Style,
+  Styles,
+} from "../../models/viewmodels";
 import styles from "./MeasurementList.module.scss";
 import { MdClose } from "react-icons/md";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
@@ -17,7 +22,12 @@ import { MdLineStyle, MdLineWeight } from "react-icons/md";
 interface Props {
   list: MeasurementViewmodel[];
   scale: Scale;
-  onChange: (idx: number, color: string, style: Style) => void;
+  onChange: (
+    idx: number,
+    color: string,
+    style: Style,
+    width: LineWidth
+  ) => void;
   onDelete: (idx: number) => void;
   selected?: string;
   onSelect: (id: string) => void;
@@ -50,7 +60,7 @@ export const MeasurementList: FC<Props> = ({
           model={item}
           key={idx}
           scale={scale}
-          onChange={(color, style) => onChange(idx, color, style)}
+          onChange={(color, style, width) => onChange(idx, color, style, width)}
           onDelete={() => setRemoveCandidate(idx)}
           isSelected={item.measurement.id === selected}
           onSelect={() => onSelect(item.measurement.id)}
@@ -63,7 +73,7 @@ export const MeasurementList: FC<Props> = ({
 interface MeasurementProps {
   model: MeasurementViewmodel;
   scale: Scale;
-  onChange: (color: string, style: Style) => void;
+  onChange: (color: string, style: Style, width: LineWidth) => void;
   onDelete: () => void;
   isSelected: boolean;
   onSelect: () => void;
@@ -105,7 +115,7 @@ const Measurement: FC<MeasurementProps> = ({
               <CompactPicker
                 color={model.color}
                 onChange={(result) => {
-                  onChange(result.hex, model.style);
+                  onChange(result.hex, model.style, model.stroke);
                 }}
               />
             </Popover.Panel>
@@ -116,7 +126,9 @@ const Measurement: FC<MeasurementProps> = ({
           <MdLineStyle className={styles.icon} />
           <select
             value={model.style}
-            onChange={(s) => onChange(model.color, s.target.value as Style)}
+            onChange={(s) =>
+              onChange(model.color, s.target.value as Style, model.stroke)
+            }
           >
             {Styles.map((s) => (
               <option key={s} value={s}>
@@ -128,7 +140,20 @@ const Measurement: FC<MeasurementProps> = ({
 
         <section>
           <MdLineWeight className={styles.icon} />
-          <input type="range" max={4} min={1} className={styles.widthSlider} />
+          <input
+            type="range"
+            min={1}
+            max={3}
+            value={model.stroke}
+            onChange={(e) =>
+              onChange(
+                model.color,
+                model.style,
+                parseInt(e.target.value) as LineWidth
+              )
+            }
+            className={styles.widthSlider}
+          />
         </section>
 
         <MdClose className={styles.removeIcon} onClick={onDelete} />
