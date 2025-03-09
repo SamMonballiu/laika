@@ -11,6 +11,8 @@ import styles from "./MeasurementList.module.scss";
 import { MdClose } from "react-icons/md";
 import { useConfirmDialog } from "../../hooks/useConfirmDialog";
 import cx from "classnames";
+import { LuPaintbrush2 } from "react-icons/lu";
+import { MdLineStyle, MdLineWeight } from "react-icons/md";
 
 interface Props {
   list: MeasurementViewmodel[];
@@ -88,33 +90,46 @@ const Measurement: FC<MeasurementProps> = ({
       <p className={styles.name}>{model.name}</p>
       <div className={styles.data}>
         <p>{data}</p>
-        <select
-          value={model.style}
-          onChange={(s) => onChange(model.color, s.target.value as Style)}
-        >
-          {Styles.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <Popover>
-          <Popover.Button className={styles.colorPickerBtn}>
-            <div
-              className={styles.color}
-              style={{ background: model.color }}
-            ></div>
-          </Popover.Button>
 
-          <Popover.Panel className={styles.colorPicker}>
-            <CompactPicker
-              color={model.color}
-              onChange={(result) => {
-                onChange(result.hex, model.style);
-              }}
-            />
-          </Popover.Panel>
-        </Popover>
+        <section>
+          <LuPaintbrush2 className={styles.icon} />
+          <Popover>
+            <Popover.Button className={styles.colorPickerBtn}>
+              <div
+                className={styles.swatch}
+                style={{ background: model.color }}
+              ></div>
+            </Popover.Button>
+
+            <Popover.Panel className={styles.colorPicker}>
+              <CompactPicker
+                color={model.color}
+                onChange={(result) => {
+                  onChange(result.hex, model.style);
+                }}
+              />
+            </Popover.Panel>
+          </Popover>
+        </section>
+
+        <section>
+          <MdLineStyle className={styles.icon} />
+          <select
+            value={model.style}
+            onChange={(s) => onChange(model.color, s.target.value as Style)}
+          >
+            {Styles.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </section>
+
+        <section>
+          <MdLineWeight className={styles.icon} />
+          <input type="range" max={4} min={1} className={styles.widthSlider} />
+        </section>
 
         <MdClose className={styles.removeIcon} onClick={onDelete} />
       </div>

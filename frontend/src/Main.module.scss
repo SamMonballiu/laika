@@ -16,7 +16,7 @@
   height: 100vh;
   overflow: auto;
   border-right: 1px solid rgba(0, 0, 0, 0.125);
-  width: 20vw;
+  min-width: 20vw;
 }
 
 .stage {

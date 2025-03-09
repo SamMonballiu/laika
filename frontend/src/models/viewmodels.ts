@@ -4,7 +4,7 @@ import {
   PolygonalMeasurement,
 } from "./measurement";
 
-export const Styles = ["solid", "dash", "dot", "dashdot"] as const;
+export const Styles = ["solid", "dash", "dashdot", "dot"] as const;
 export type Style = (typeof Styles)[number];
 
 export abstract class MeasurementViewmodel {

@@ -18,7 +18,7 @@
     cursor: pointer;
 
     .removeIcon {
-      opacity: .25;
+      opacity: 0.25;
     }
   }
 }
@@ -33,15 +33,28 @@
 
 .data {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   justify-content: space-between;
   align-items: center;
+
+  p {
+    min-width: 8ch;
+  }
+
+  section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 }
 
-.color {
-  width: 16px;
-  height: 10px;
-  border: 1px solid black;
+.swatch {
+  $dim: 12px;
+  width: 100%;
+  height: $dim;
+  width: $dim;
+  border: 1px solid rgba(0, 0, 0, 0.65);
+  border-radius: 48px;
   &:hover {
     box-shadow: 0 0 3px black;
   }
@@ -53,7 +66,8 @@
   padding: 0 !important;
   background: none !important;
   margin: 0;
-  border-radius: 0 !important;
+  display: flex !important;
+  align-items: center;
 }
 
 .colorPicker {
@@ -73,4 +87,13 @@
   &:hover {
     opacity: 1 !important;
   }
+}
+
+.icon {
+  opacity: 0.5;
+  font-size: 1.1rem;
+}
+
+.widthSlider {
+  width: 60px;
 }
