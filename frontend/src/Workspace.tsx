@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, FC } from "react";
+import React, { useState, useEffect, useMemo, FC, useRef } from "react";
 // import "./App.css";
 import { Layer, Stage, Image as KonvaImage, Line, Shape } from "react-konva";
 import useImage from "use-image";
@@ -37,6 +37,8 @@ import { useZoom } from "./hooks/useZoom";
 import { AlignmentGuide } from "./components/AlignmentGuide";
 import { MeasurementInfo } from "./components/MeasurementInfo/MeasurementInfo";
 import { useWorkspace } from "./hooks/useWorkspace";
+import { Canvas } from "fabric";
+import { FabricCanvas } from "./components/FabricCanvas";
 
 const icons: Record<Mode, React.ReactNode> = {
   select: <LuMousePointer2 />,
@@ -89,7 +91,27 @@ const Workspace: FC<Props> = ({ pageContent, onPicker }) => {
     }
   }, [mode, temporaryPoints, cursorPoint]);
 
-  const [stuff] = useImage(`data:image/jpg;base64,${pageContent}`);
+  function generateBlankImage(width: number, height: number): string {
+    // Create a canvas element
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    // Get the 2D drawing context
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      // Fill the canvas with white color
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    // Convert the canvas to a data URL (base64)
+    return canvas.toDataURL("image/png");
+  }
+
+  const [stuff] = useImage(generateBlankImage(10, 20));
+
+  // const [stuff] = useImage(`data:image/jpg;base64,${pageContent}`);
   const zoom = useZoom();
 
   const {
@@ -347,7 +369,17 @@ const Workspace: FC<Props> = ({ pageContent, onPicker }) => {
               ),
             })}
           >
+            <FabricCanvas
+              measurements={measurements}
+              zoom={zoom.value}
+              onPointsChanged={(idx, points) => {
+                measurements[idx].measurement.points = points;
+                setMeasurements([...measurements]);
+              }}
+            />
+
             <Stage
+              className={styles.hide}
               onMouseMove={(evt) => {
                 if (temporaryPoints.length === 0) {
                   return;

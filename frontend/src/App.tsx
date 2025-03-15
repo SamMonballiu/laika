@@ -75,6 +75,8 @@ export const App: FC = () => {
     }
   }, [mode]);
 
+  return <Workspace pageContent={content} onPicker={() => setMode("open")} />;
+
   if (mode === "load") {
     return <Loading animated className={styles.loading} />;
   } else if (mode === "open") {

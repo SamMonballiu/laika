@@ -12,9 +12,10 @@ const calculatePolygonArea = (points: Point[]) => {
   return Math.abs(area / 2);
 };
 
+type MeasurementType = "polygon" | "line";
 export abstract class Measurement {
   public points: Point[];
-  
+
   public get asPointsArray() {
     return this.points.reduce((acc, pt) => {
       return acc.concat([pt.x, pt.y]);
@@ -22,7 +23,11 @@ export abstract class Measurement {
   }
 
   public get id() {
-    return this.asPointsArray.join("-")
+    return this.asPointsArray.join("-");
+  }
+
+  public get type(): MeasurementType {
+    return this.points.length === 2 ? "line" : "polygon";
   }
 
   constructor(points: Point[]) {
